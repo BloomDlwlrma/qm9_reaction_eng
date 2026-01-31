@@ -1,0 +1,5 @@
+! CCSD 6-31G TightSCF SCFConvForced
+%maxcore 5000
+*xyz 0 3
+C 0.0 0.0 0.0
+*

@@ -27,7 +27,47 @@ from pathlib import Path
 from typing import Optional
 
 
-def _write_h5_from_csv(csv_path: Path, h5_path: Path, *, energy_col: Optional[str] = None) -> int:
+def _get_nocc_from_xyz(xyz_path: Path) -> int:
+	"""Read XYZ file and calculate number of occupied orbitals (nocc) based on valence electrons."""
+	if not xyz_path.exists():
+		raise FileNotFoundError(f"XYZ file not found: {xyz_path}")
+
+	with open(xyz_path, "r") as f:
+		lines = f.readlines()
+
+	# Try parsing number of atoms
+	try:
+		num_atoms = int(lines[0].strip())
+	except ValueError:
+		# Fallback if there's extra whitespace
+		num_atoms = int(lines[0].strip().split()[0])
+
+	atom_lines = lines[2 : 2 + num_atoms]
+
+	valence_dict = {"H": 1, "C": 4, "N": 5, "O": 6, "F": 7}
+	# atomic_numbers fallback for unknown elements (though qm9 usually has only HCNOF)
+	atomic_numbers = {"H": 1, "C": 6, "N": 7, "O": 8, "F": 9}
+
+	total_valence = 0
+	for line in atom_lines:
+		parts = line.strip().split()
+		if not parts:
+			continue
+		symbol = parts[0]
+
+		if symbol in valence_dict:
+			total_valence += valence_dict[symbol]
+		elif symbol in atomic_numbers:
+			total_valence += atomic_numbers[symbol]
+		else:
+			raise ValueError(f"Unknown element: {symbol}")
+
+	return total_valence // 2
+
+
+def _write_h5_from_csv(
+	csv_path: Path, h5_path: Path, xyz_dir: Path, *, energy_col: Optional[str] = None
+) -> int:
 	try:
 		import pandas as pd  # type: ignore
 	except ImportError as e:  # pragma: no cover
@@ -82,7 +122,15 @@ def _write_h5_from_csv(csv_path: Path, h5_path: Path, *, energy_col: Optional[st
 		for molname, g in df.groupby("qm9_index", sort=False):
 			grp = h5.create_group(str(molname))
 
-			pairlist = g[["i", "j"]].to_numpy(dtype="int32", copy=True)
+			xyz_path = xyz_dir / f"{molname}.xyz"
+			try:
+				nocc = _get_nocc_from_xyz(xyz_path)
+			except Exception as e:
+				print(f"Warning: could not calculate nocc for {molname}: {e}. Skipping.", file=sys.stderr)
+				continue
+
+			# pairlist = g[["i", "j"]].to_numpy(dtype="int32", copy=True)
+			pairlist = (g["i"] * nocc + g["j"]).to_numpy(dtype="int64", copy=True)
 			pair_ene = g[energy_col].to_numpy(dtype="float64", copy=True)
 
 			grp.create_dataset("pairlist", data=pairlist)
@@ -101,6 +149,12 @@ def main(argv: list[str]) -> int:
 	p.add_argument("--triples-csv", type=str, help="CSV with qm9_index,i,j,et_ijk")
 	p.add_argument("--triples-h5", type=str, help="Output HDF5 path for triples pair-sum energies")
 	p.add_argument(
+		"--xyz-dir",
+		type=str,
+		default="qm9_xyz_files",
+		help="Directory containing XYZ files (for nocc calculation).",
+	)
+	p.add_argument(
 		"--energy-col",
 		type=str,
 		default=None,
@@ -108,6 +162,7 @@ def main(argv: list[str]) -> int:
 	)
 
 	args = p.parse_args(argv)
+	xyz_dir = Path(args.xyz_dir)
 
 	did_any = False
 
@@ -115,7 +170,9 @@ def main(argv: list[str]) -> int:
 		if not (args.pair_csv and args.pair_h5):
 			print("Error: --pair-csv and --pair-h5 must be provided together", file=sys.stderr)
 			return 2
-		groups = _write_h5_from_csv(Path(args.pair_csv), Path(args.pair_h5), energy_col=args.energy_col)
+		groups = _write_h5_from_csv(
+			Path(args.pair_csv), Path(args.pair_h5), xyz_dir, energy_col=args.energy_col
+		)
 		print(f"Wrote {groups} molecule group(s) to {args.pair_h5}")
 		did_any = True
 
@@ -124,7 +181,10 @@ def main(argv: list[str]) -> int:
 			print("Error: --triples-csv and --triples-h5 must be provided together", file=sys.stderr)
 			return 2
 		groups = _write_h5_from_csv(
-			Path(args.triples_csv), Path(args.triples_h5), energy_col=args.energy_col
+			Path(args.triples_csv),
+			Path(args.triples_h5),
+			xyz_dir,
+			energy_col=args.energy_col,
 		)
 		print(f"Wrote {groups} molecule group(s) to {args.triples_h5}")
 		did_any = True

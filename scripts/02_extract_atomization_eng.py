@@ -20,13 +20,22 @@ def parse_arguments():
         )
     )
     parser.add_argument(
-        "--target",
+        "-T", "--target",
         choices=["ccsd", "mp2"],
         default="ccsd",
         help="Select which accurate-energy column to use: Accurate_eng_{ccsd|mp2}.",
     )
     parser.add_argument(
-        "--out_dir",
+        "-b", "--basis",
+        choices=[
+            "def2-SVP", "def2-TZVP", "def2-QZVPP", "6-31G*", "cc-pVDZ", 
+            "cc-pVTZ", "aug-cc-pVDZ", "6-31G", "3-21G", "6-31G**", "6-31+G**"
+        ],
+        default="cc-pVTZ",
+        help="Basis set used for calculation. This is only used for inferring the method column if --method_col is not provided. The script looks for a column containing 'osvccsd_{basis}' or 'osvmp2_{basis}' based on --target.",
+    )
+    parser.add_argument(
+        "-O", "--out_dir",
         default="/home/ubuntu/Shiwei/qm9_reaction_eng/csv",
         help=(
             "Directory containing qm9_bonds_energies_{target}.csv and where output will be written. "

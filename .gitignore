@@ -1,9 +1,9 @@
-csv/*
-png/*
-test/*
+src/csv/
+src/png/
+src/test/
 
 qm9_orca_work/qm9_orca_work_molecu
 qm9_xyz_files/
 dsgdb9nsd.xyz.tar.bz2
 
-*.log
+tdnn/test

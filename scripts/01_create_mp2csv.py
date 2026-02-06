@@ -37,6 +37,15 @@ def parse_arguments():
         help="Output flavor: writes qm9_bonds_energies_{ccsd|mp2}.csv and selects a matching run_dir automatically.",
     )
     parser.add_argument(
+        "-b", "--basis",
+        choices=[
+            "def2-SVP", "def2-TZVP", "def2-QZVPP", "6-31G*", "cc-pVDZ", 
+            "cc-pVTZ", "aug-cc-pVDZ", "6-31G", "3-21G", "6-31G**", "6-31+G**"
+        ],
+        default="cc-pVTZ",
+        help="Basis set used for calculation."
+    )
+    parser.add_argument(
         "--run_dir",
         default=None,
         help=(
@@ -300,7 +309,7 @@ def get_ene_csv_from_log(
     # logging.info(f"Total lines processed: {line_counter}, total test entries: {test_counter}, total InChI extracted: {InChI_counter}")
     return out_csv
 
-def get_chem_csv_from_xyz(xyz_dir: str = None, out_csv_dir: str = None) -> tuple[pd.DataFrame, list[int]]:
+def get_chem_df_from_xyz(xyz_dir: str = None, out_csv_dir: str = None) -> tuple[pd.DataFrame, list[int]]:
     """Create a Chem/index/qm9_index table from QM9 xyz files.
 
     It extracts the molecular formula (e.g., C4H10O) from the trailing InChI line
@@ -517,7 +526,7 @@ def main():
     failed_out_dir_name = f"failed_energy_extract_{args.target}.out"
     failed_out_path = os.path.join(failed_out_dir, failed_out_dir_name)
 
-    df_Chem, failed_indices = get_chem_csv_from_xyz(xyz_dir=xyz_dir, out_csv_dir=out_dir)
+    df_Chem, failed_indices = get_chem_df_from_xyz(xyz_dir=xyz_dir, out_csv_dir=out_dir)
     # ======= Create energy csv from log file ======
     out_csv_path = get_ene_csv_from_log(
         run_dir,
@@ -571,10 +580,16 @@ def main():
     logging.info(f"Successfully matched {matched_count}/{total_count} molecules.")
 
     os.makedirs(out_dir, exist_ok=True)
-    out_name = f"qm9_bonds_energies_{args.target}.csv"
+    basis_clean = args.basis.lower().replace("-", "")
+    out_name = f"qm9_bonds_energies_{args.target}_{basis_clean}.csv"
     out_path = os.path.join(out_dir, out_name)
     df_merged.to_csv(out_path, index=False)
     logging.info(f"Merged data with energies saved to: {out_path}")
+
+    out_h5_name = f"qm9_bonds_energies_{args.target}_{basis_clean}.h5"
+    out_h5_path = os.path.join(out_dir, out_h5_name)
+    df_merged.to_hdf(out_h5_path, key='data', mode='w')
+    logging.info(f"Merged data with energies saved to: {out_h5_path}")
 
     update_failed_indices(failed_out_path, failed_indices)
 

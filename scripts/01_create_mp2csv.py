@@ -19,55 +19,13 @@ def _get_project_root() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 def parse_arguments():
-    project_root = _get_project_root()
-    default_test_root = os.path.join(project_root, "test")
-    default_xyz_dir = os.path.join(project_root, "qm9_xyz_files")
-    default_out_dir = os.path.join(project_root, "csv")
-
     parser = argparse.ArgumentParser(
-        description=(
-            "Create QM9 chem table from xyz + merge with energy logs. "
-            "Energy run directory is inferred from test/ unless --run_dir is provided."
-        )
+        description="Create QM9 chem table from xyz + merge with energy logs."
     )
     parser.add_argument(
-        "-t", "--target",
-        choices=["ccsd", "mp2"],
-        default="ccsd",
-        help="Output flavor: writes qm9_bonds_energies_{ccsd|mp2}.csv and selects a matching run_dir automatically.",
+        "run_dir",
+        help="Path to the run directory containing ene_total_withhf.log."
     )
-    parser.add_argument(
-        "-b", "--basis",
-        choices=[
-            "def2-SVP", "def2-TZVP", "def2-QZVPP", "6-31G*", "cc-pVDZ", 
-            "cc-pVTZ", "aug-cc-pVDZ", "6-31G", "3-21G", "6-31G**", "6-31+G**"
-        ],
-        default="cc-pVTZ",
-        help="Basis set used for calculation."
-    )
-    parser.add_argument(
-        "--run_dir",
-        default=None,
-        help=(
-            "Path to a specific run directory under test/ (must contain ene_total_withhf.log). "
-            "If omitted, the latest matching run folder under test/ is used."
-        ),
-    )
-    parser.add_argument(
-        "-x", "--xyz_dir",
-        default=default_xyz_dir,
-        help="Directory containing dsgdb9nsd_*.xyz files.",
-    )
-    parser.add_argument(
-        "-o", "--out_dir",
-        default=default_out_dir,
-        help="Directory to write final merged qm9_bonds_energies_*.csv.",
-    )
-
-    # Legacy / power-user knobs (hidden to keep CLI clean)
-    parser.add_argument("--test_root", default=default_test_root, help=argparse.SUPPRESS)
-    parser.add_argument("--energy_log", default="ene_total_withhf.log", help=argparse.SUPPRESS)
-
     return parser.parse_args()
 
 
@@ -75,26 +33,58 @@ def _infer_basis_and_method_from_run_dir(run_dir: str):
     """Infer basis and method tokens from a run directory name.
 
     Example run folder name:
-      20251222215328_..._631g_osvccsd_...
+      ..._631g_osvccsd_...
 
     Returns
     -------
     (basis, method)
-      basis like '631g' (or None), method like 'osvccsd'/'osvmp2' (or None)
     """
     if not run_dir:
         return None, None
     name = os.path.basename(os.path.normpath(run_dir))
-    tokens = [t for t in name.split('_') if t]
+    tokens = [t.lower() for t in name.split('_') if t]
 
     basis = None
     method = None
+
+    # Method mapping to standard format
+    method_map = {
+        "osvccsd": "OSVCCSD",
+        "osvmp2": "OSVMP2",
+        "ccsd": "OSVCCSD", # Fallback
+        "mp2": "OSVMP2",   # Fallback
+    }
+
+    # Basis mapping attempt (cleanup filename safe tokens to choices)
+    basis_map = {
+        "631g": "6-31G",
+        "631gs": "6-31G*",
+        "631g**": "6-31G**",
+        "631+g**": "6-31+G**",
+        "def2svp": "def2-SVP",
+        "def2tzvp": "def2-TZVP",
+        "def2qzvpp": "def2-QZVPP",
+        "ccpvdz": "cc-pVDZ",
+        "ccpvtz": "cc-pVTZ",
+        "augccpvdz": "aug-cc-pVDZ",
+        "321g": "3-21G"
+    }
+
     for t in tokens:
-        if re.fullmatch(r"\d{3,4}g", t):
-            basis = t
-    for t in tokens:
-        if t in {"osvccsd", "osvmp2"}:
-            method = t
+        # Check method
+        if t in method_map:
+            method = method_map[t]
+        
+        # Check basis (direct map or regex)
+        # Try direct map first
+        if t in basis_map:
+            basis = basis_map[t]
+        # Regex fallback for basis like 631g if not in map specifically
+        elif re.fullmatch(r"\d{3,4}g\*?", t):
+             # Try to reconstruct standard format if simple
+             if t == '631g': basis = "6-31G" # Should be covered by map
+             else: basis = t # fallback to raw token
+
     return basis, method
 
 
@@ -168,7 +158,7 @@ def get_inchi_from_xyz(ixyzfile):
         logging.warning(f"Failed to read InChI from {ixyzfile}: {e}")
     return None
 
-def _strip_inchi_prefix_in_csv(csv_path: str) -> bool:
+def _strip_inchi_prefix_in_csv(csv_path):
     """In-place cleanup: if InChI values start with 'InChI=', strip the prefix.
 
     Returns True if the file was modified.
@@ -196,13 +186,7 @@ def _strip_inchi_prefix_in_csv(csv_path: str) -> bool:
     logging.info(f"Stripped 'InChI=' prefix in existing CSV: {csv_path}")
     return True
 
-def get_ene_csv_from_log(
-    ene_dir,
-    xyz_dir,
-    failed_indices,
-    target: str = "ccsd",
-    energy_log: str = "ene_total_withhf.log",
-):
+def get_ene_csv_from_log(ene_dir, xyz_dir, failed_indices, target, energy_log):
     '''
     This function reads energy values from a log file and
     creates a CSV file with energy columns: 'index', 'qm9_index', '<method>_<basis>', 'Accurate_eng_{ccsd|mp2}', 'error'
@@ -487,53 +471,39 @@ def parse_atom_composition(chem_formula):
 def main():
     # ====== Parse Arguments ======
     '''
-    Docstring for main
-    usage: 01_create_mp2csv.py [-h] [--target {ccsd,mp2}] [--run_dir RUN_DIR] [--test_root TEST_ROOT] [--xyz_dir XYZ_DIR] [--out_dir OUT_DIR] [--energy_log ENERGY_LOG]
+    usage: 01_create_mp2csv.py [-h] run_dir
+    Create QM9 chem table from xyz + merge with energy logs.
 
-    Create QM9 chem table from xyz + merge with energy logs. Energy run directory is inferred from qm9_reaction_eng/test/ unless --run_dir is provided.
+    positional arguments:
+        run_dir     Path to the run directory containing ene_total_withhf.log.
 
     optional arguments:
-    -h, --help            show this help message and exit
-    --target {ccsd,mp2}   Output flavor: writes qm9_bonds_energies_{ccsd|mp2}.csv and selects a matching run_dir automatically.
-    --run_dir RUN_DIR     Path to a specific run directory under test/ (must contain ene_total_withhf.log). If omitted, the latest matching run folder under --test_root is used.
-    --test_root TEST_ROOT
-                            Root directory that contains run folders and/or ene_total_withhf.log.
-    --xyz_dir XYZ_DIR     Directory containing dsgdb9nsd_*.xyz files.
-    --out_dir OUT_DIR     Directory to write final merged qm9_bonds_energies_*.csv.
-    --energy_log ENERGY_LOG
-                            Energy log filename inside run_dir.
-    
-    example usage:
-        python /home/ubuntu/Shiwei/qm9_reaction_eng/scripts/01_create_mp2csv.py --target ccsd --test_root /home/ubuntu/Shiwei/qm9_reaction_eng/test --xyz_dir /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_xyz_files --out_dir /home/ubuntu/Shiwei/qm9_reaction_eng/csv
-        python /home/ubuntu/Shiwei/qm9_reaction_eng/scripts/01_create_mp2csv.py --target mp2 --test_root /home/ubuntu/Shiwei/qm9_reaction_eng/test --xyz_dir /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_xyz_files --out_dir /home/ubuntu/Shiwei/qm9_reaction_eng/csv
+        -h, --help  show this help message and exit
     '''
     args = parse_arguments()
 
     # ====== Initial DataFrame Load ======
-    xyz_dir = args.xyz_dir
-    out_dir = args.out_dir
+    xyz_dir = os.path.join(_get_project_root(), "src", "qm9_xyz_files")
+    out_dir = os.path.join(_get_project_root(), "src", "csv")
     failed_out_dir = out_dir
-    test_root = args.test_root
-    run_dir = _select_run_dir(test_root=test_root, target=args.target, explicit_run_dir=args.run_dir)
-
-    basis, method = _infer_basis_and_method_from_run_dir(run_dir)
-    if not basis:
-        basis = "unknown"
-    if not method:
-        method = "unknown"
-    method_energy_col = f"{method}_{basis}"
-    accurate_col = f"Accurate_eng_{args.target}"
-    failed_out_dir_name = f"failed_energy_extract_{args.target}.out"
+    tdnn_source_dir = args.run_dir
+    basis, target = _infer_basis_and_method_from_run_dir(tdnn_source_dir)
+    
+    method_energy_col = f"{target}_{basis}" # e.g. OSVCCSD_6-31G or clean version?
+    
+    accurate_col = f"Accurate_eng_{target}"
+    
+    failed_out_dir_name = f"failed_energy_extract_{target}.out"
     failed_out_path = os.path.join(failed_out_dir, failed_out_dir_name)
 
     df_Chem, failed_indices = get_chem_df_from_xyz(xyz_dir=xyz_dir, out_csv_dir=out_dir)
     # ======= Create energy csv from log file ======
     out_csv_path = get_ene_csv_from_log(
-        run_dir,
+        tdnn_source_dir,
         xyz_dir,
         failed_indices,
-        target=args.target,
-        energy_log=args.energy_log,
+        target=target,
+        energy_log=os.path.join(tdnn_source_dir, "ene_total_withhf.log")
     )
     if not out_csv_path or not os.path.isfile(out_csv_path):
         logging.error("Failed to create energy CSV. Exiting.")
@@ -580,22 +550,17 @@ def main():
     logging.info(f"Successfully matched {matched_count}/{total_count} molecules.")
 
     os.makedirs(out_dir, exist_ok=True)
-    basis_clean = args.basis.lower().replace("-", "")
-    out_name = f"qm9_bonds_energies_{args.target}_{basis_clean}.csv"
+    out_name = f"qm9_bonds_energies_{basis}_{target}.csv"
     out_path = os.path.join(out_dir, out_name)
     df_merged.to_csv(out_path, index=False)
     logging.info(f"Merged data with energies saved to: {out_path}")
 
-    out_h5_name = f"qm9_bonds_energies_{args.target}_{basis_clean}.h5"
+    out_h5_name = f"qm9_bonds_energies_{basis}_{target}.h5"
     out_h5_path = os.path.join(out_dir, out_h5_name)
     df_merged.to_hdf(out_h5_path, key='data', mode='w')
-    logging.info(f"Merged data with energies saved to: {out_h5_path}")
+    # logging.info(f"Merged data with energies saved to: {out_h5_path}")
 
     update_failed_indices(failed_out_path, failed_indices)
-
-# def main():
-#     token = get_inchi_from_xyz("/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_xyz_files/dsgdb9nsd_000001.xyz")
-#     print(token)
 
 if __name__ == "__main__":
     main()

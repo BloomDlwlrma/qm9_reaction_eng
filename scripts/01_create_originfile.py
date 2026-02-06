@@ -456,6 +456,40 @@ def parse_atom_composition(chem_formula):
         comp[elem] = int(num) if num else 1
     return comp
 
+def clean_xyz_files(src_dir):
+    with open(src_dir, 'r') as f:
+        lines = f.readlines()
+    if not lines:
+        raise ValueError(f"Empty xyz file: {src_dir}")
+    try:
+        natoms = int(lines[0].strip())
+    except Exception as e:
+        raise ValueError(f"Invalid atom count in line 1: {lines[0]}")
+    
+    lines_need = natoms + 2
+    if len(lines) < lines_need:
+        raise ValueError(f"File has {len(lines)} lines but expected at least {lines_need} for {natoms} atoms.")
+    else:
+        out_lines = lines[:lines_need]
+        if out_lines[1].strip() == "":
+            pass
+        else:   
+            out_lines[1] = "\n"
+
+        for i in range(2, len(out_lines)):
+            l = out_lines[i]
+            parts = l.strip().split()
+            if len(parts) >= 4:
+                new_line = f"{parts[0]:<2} {parts[1]:>15} {parts[2]:>15} {parts[3]:>15}\n"
+                out_lines[i] = new_line
+            elif len(parts) < 3:
+                raise ValueError(f"Invalid atom line format: {l}")
+            else:
+                pass
+    
+    with open(src_dir, 'w') as f:
+        f.writelines(out_lines)
+
 def main():
     # ====== Parse Arguments ======
     '''
@@ -469,9 +503,17 @@ def main():
         -h, --help  show this help message and exit
     '''
     args = parse_arguments()
-
+    # ====================================
     # ====== Initial DataFrame Load ======
+    # ====================================
     xyz_dir = os.path.join(_get_project_root(), "src", "qm9_xyz_files")
+    for f in os.listdir(xyz_dir):
+        if f.endswith(".xyz"):
+            try:
+                clean_xyz_files(os.path.join(xyz_dir, f))
+            except Exception as e:
+                logging.warning(f"Failed to clean xyz file {f}: {e}")
+
     out_dir = os.path.join(_get_project_root(), "src", "csv")
     failed_out_dir = out_dir
     tdnn_source_dir = args.run_dir
@@ -486,14 +528,10 @@ def main():
     failed_out_path = os.path.join(failed_out_dir, failed_out_dir_name)
 
     df_Chem, failed_indices = get_chem_df_from_xyz(xyz_dir=xyz_dir, out_csv_dir=out_dir)
+    # ==============================================
     # ======= Create energy csv from log file ======
-    out_csv_path = get_ene_csv_from_log(
-        tdnn_source_dir,
-        xyz_dir,
-        failed_indices,
-        target=target,
-        energy_log=os.path.join(tdnn_source_dir, "ene_total_withhf.log")
-    )
+    # ==============================================
+    out_csv_path = get_ene_csv_from_log(tdnn_source_dir, xyz_dir, failed_indices, target=target, energy_log=os.path.join(tdnn_source_dir, "ene_total_withhf.log") )
     if not out_csv_path or not os.path.isfile(out_csv_path):
         logging.error("Failed to create energy CSV. Exiting.")
         update_failed_indices(failed_out_path, failed_indices)

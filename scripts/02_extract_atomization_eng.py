@@ -1,7 +1,7 @@
 import argparse
 import logging
 import os
-
+import re
 from typing import Optional
 
 import pandas as pd
@@ -12,50 +12,72 @@ logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s %(me
 HARTREE_TO_KCALMOL = 627.50956  # 1 Hartree = 627.50956 kcal/mol
 
 
+def _get_project_root() -> str:
+    """Return qm9_reaction_eng directory path (parent of scripts/)."""
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description=(
-            "Compute atomization energy (kcal/mol) for QM9 molecules by subtracting single-atom energies "
-            "from molecular energies in qm9_bonds_energies_{ccsd|mp2}.csv."
-        )
+        description="Compute atomization energy (kcal/mol) for QM9 molecules."
     )
     parser.add_argument(
-        "-T", "--target",
-        choices=["ccsd", "mp2"],
-        default="ccsd",
-        help="Select which accurate-energy column to use: Accurate_eng_{ccsd|mp2}.",
-    )
-    parser.add_argument(
-        "-b", "--basis",
-        choices=[
-            "def2-SVP", "def2-TZVP", "def2-QZVPP", "6-31G*", "cc-pVDZ", 
-            "cc-pVTZ", "aug-cc-pVDZ", "6-31G", "3-21G", "6-31G**", "6-31+G**"
-        ],
-        default="cc-pVTZ",
-        help="Basis set used for calculation. This is only used for inferring the method column if --method_col is not provided. The script looks for a column containing 'osvccsd_{basis}' or 'osvmp2_{basis}' based on --target.",
-    )
-    parser.add_argument(
-        "-O", "--out_dir",
-        default="/home/ubuntu/Shiwei/qm9_reaction_eng/csv",
-        help=(
-            "Directory containing qm9_bonds_energies_{target}.csv and where output will be written. "
-            "Output defaults to qm9_bonds_energies_{target}_final.csv."
-        ),
-    )
-    parser.add_argument(
-        "--atom_csv",
-        default="/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/QM9_single_atom_energies_summary.csv",
-        help="CSV containing columns: ATOM, ENERGY(Hartree).",
-    )
-    parser.add_argument(
-        "--method_col",
-        default=None,
-        help=(
-            "Column name for the model energy (osv) in the input CSV. "
-            "If omitted, the script tries to infer: first column containing 'osvccsd_' or 'osvmp2_' based on --target."
-        ),
+        "run_dir",
+        help="Path to the run directory containing ene_total_withhf.log."
     )
     return parser.parse_args()
+
+
+def _infer_basis_and_method_from_run_dir(run_name: str):
+    """Infer basis and method tokens from a run directory name.
+
+    Example run folder name:
+      ..._631g_osvccsd_...
+
+    Returns
+    -------
+    (basis, method)
+    """
+    if not run_name:
+        return None, None
+    tokens = [t.lower() for t in run_name.split('_') if t]
+
+    basis = None
+    method = None
+
+    # Method mapping to standard format
+    method_map = {
+        "osvccsd": "OSVCCSD",
+        "osvmp2": "OSVMP2",
+        "ccsd": "OSVCCSD",
+        "mp2": "OSVMP2",
+    }
+
+    # Basis mapping
+    basis_map = {
+        "631g": "6-31G",
+        "631gs": "6-31G*",
+        "631g**": "6-31G**",
+        "631+g**": "6-31+G**",
+        "def2svp": "def2-SVP",
+        "def2tzvp": "def2-TZVP",
+        "def2qzvpp": "def2-QZVPP",
+        "ccpvdz": "cc-pVDZ",
+        "ccpvtz": "cc-pVTZ",
+        "augccpvdz": "aug-cc-pVDZ",
+        "321g": "3-21G"
+    }
+
+    for t in tokens:
+        if t in method_map:
+            method = method_map[t]
+        if t in basis_map:
+            basis = basis_map[t]
+        elif re.fullmatch(r"\d{3,4}g\*?", t):
+            if t == '631g': basis = "6-31G"
+            else: basis = t
+
+    return basis, method
 
 
 def _load_atom_energies_kcal(atom_csv: str) -> dict[str, float]:
@@ -120,13 +142,31 @@ def _calculate_atomization_energy_row(row: pd.Series, atom_energy_dict: dict[str
 def main():
     args = parse_arguments()
 
-    os.makedirs(args.out_dir, exist_ok=True)
-    in_csv = os.path.join(args.out_dir, f"qm9_bonds_energies_{args.target}.csv")
-    out_csv = os.path.join(args.out_dir, f"qm9_bonds_energies_{args.target}_final.csv")
-    accurate_col = f"Accurate_eng_{args.target}"
+    # Get project paths
+    project_root = _get_project_root()
+    out_dir = os.path.join(project_root, "src", "csv")
+    
+    # Extract run directory info
+    source_dir = os.path.basename(os.path.normpath(args.run_dir))
+    basis, method = _infer_basis_and_method_from_run_dir(source_dir)
+    
+    if not basis or not method:
+        logging.error(f"Cannot infer basis/method from run_dir: {args.run_dir}")
+        return
+    
+    # Determine target (ccsd or mp2) from method
+    target = "ccsd" if "CCSD" in method else "mp2"
+    
+    # Set file paths
+    atom_csv = os.path.join(project_root, "qm9_orca_work", "qm9_orca_work_elem", "QM9_single_atom_energies_summary.csv")
+    in_csv = os.path.join(out_dir, f"source_energies_{basis}_{target}_{source_dir}.csv")
+    out_csv = os.path.join(out_dir, f"label_energies_{basis}_{target}_{source_dir}.csv")
+    accurate_col = f"Accurate_eng_{target}"
 
-    logging.info(f"Loading atom energies from: {args.atom_csv}")
-    atom_energy_dict = _load_atom_energies_kcal(args.atom_csv)
+    os.makedirs(out_dir, exist_ok=True)
+
+    logging.info(f"Loading atom energies from: {atom_csv}")
+    atom_energy_dict = _load_atom_energies_kcal(atom_csv)
     logging.info(f"Single-atom energies loaded (kcal/mol): {atom_energy_dict}")
 
     logging.info(f"Loading molecule CSV: {in_csv}")
@@ -137,12 +177,11 @@ def main():
         return
     logging.info(f"Molecule rows loaded: {len(mol_df)}")
 
-    method_col = args.method_col or _infer_method_col(mol_df, args.target)
+    method_col = _infer_method_col(mol_df, target)
     if not method_col:
         logging.error(
-            "Cannot infer --method_col. Please pass --method_col explicitly (e.g., osvccsd_631g or osvmp2_631g)."
+            f"Cannot infer method column for target={target}. Available columns: {mol_df.columns.tolist()}"
         )
-        logging.error(f"Available columns: {mol_df.columns.tolist()}")
         return
 
     required_cols = [method_col, accurate_col, "C_num", "H_num", "O_num", "N_num", "F_num"]

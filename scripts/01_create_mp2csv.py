@@ -31,12 +31,9 @@ def parse_arguments():
 
 def _infer_basis_and_method_from_run_dir(run_dir: str):
     """Infer basis and method tokens from a run directory name.
-
     Example run folder name:
       ..._631g_osvccsd_...
-
     Returns
-    -------
     (basis, method)
     """
     if not run_dir:
@@ -46,16 +43,12 @@ def _infer_basis_and_method_from_run_dir(run_dir: str):
 
     basis = None
     method = None
-
-    # Method mapping to standard format
     method_map = {
         "osvccsd": "OSVCCSD",
         "osvmp2": "OSVMP2",
-        "ccsd": "OSVCCSD", # Fallback
-        "mp2": "OSVMP2",   # Fallback
+        "ccsd": "OSVCCSD", 
+        "mp2": "OSVMP2",   
     }
-
-    # Basis mapping attempt (cleanup filename safe tokens to choices)
     basis_map = {
         "631g": "6-31G",
         "631gs": "6-31G*",
@@ -74,16 +67,10 @@ def _infer_basis_and_method_from_run_dir(run_dir: str):
         # Check method
         if t in method_map:
             method = method_map[t]
-        
-        # Check basis (direct map or regex)
-        # Try direct map first
         if t in basis_map:
             basis = basis_map[t]
-        # Regex fallback for basis like 631g if not in map specifically
         elif re.fullmatch(r"\d{3,4}g\*?", t):
-             # Try to reconstruct standard format if simple
-             if t == '631g': basis = "6-31G" # Should be covered by map
-             else: basis = t # fallback to raw token
+            basis = t 
 
     return basis, method
 
@@ -123,6 +110,7 @@ def update_failed_indices(outputfile, indices):
     logging.info(f"Number of failed indices (failed to read .log data) = {fail_count}")
     if not indices:
         logging.info("No failed indices, skip creating .out file.")
+        logging.info("="*50)
         if os.path.exists(outputfile):
             os.remove(outputfile) 
         return
@@ -242,8 +230,8 @@ def get_ene_csv_from_log(ene_dir, xyz_dir, failed_indices, target, energy_log):
                 for line in f:
                     line = line.strip()
                     line_counter += 1
-                    if not line.startswith('test'):
-                        continue
+                    # if not line.startswith('test'):
+                    #     continue
                     parts = line.split()
                     if len(parts) < 6:
                         logging.warning(f"Unexpected format in line: {line}")
@@ -488,12 +476,13 @@ def main():
     failed_out_dir = out_dir
     tdnn_source_dir = args.run_dir
     basis, target = _infer_basis_and_method_from_run_dir(tdnn_source_dir)
+    filename = os.path.basename(os.path.normpath(tdnn_source_dir))
     
     method_energy_col = f"{target}_{basis}" # e.g. OSVCCSD_6-31G or clean version?
     
     accurate_col = f"Accurate_eng_{target}"
     
-    failed_out_dir_name = f"failed_energy_extract_{target}.out"
+    failed_out_dir_name = f"failed_energy_extract_{basis}_{target}_{filename}.out"
     failed_out_path = os.path.join(failed_out_dir, failed_out_dir_name)
 
     df_Chem, failed_indices = get_chem_df_from_xyz(xyz_dir=xyz_dir, out_csv_dir=out_dir)
@@ -535,7 +524,6 @@ def main():
         how='left'
     )
 
-# need to correct data types after merge =============================== time: 2026-1-14 11:35am
     num_cols = [method_energy_col, accurate_col, 'error']
     df_merged[num_cols] = df_merged[num_cols].apply(pd.to_numeric, errors='coerce').astype(float)
     # df_merged['InChI'] = df_merged['InChI'].fillna('').astype(object)
@@ -550,14 +538,14 @@ def main():
     logging.info(f"Successfully matched {matched_count}/{total_count} molecules.")
 
     os.makedirs(out_dir, exist_ok=True)
-    out_name = f"qm9_bonds_energies_{basis}_{target}.csv"
+    out_name = f"source_energies_{basis}_{target}_{filename}.csv"
     out_path = os.path.join(out_dir, out_name)
     df_merged.to_csv(out_path, index=False)
     logging.info(f"Merged data with energies saved to: {out_path}")
 
-    out_h5_name = f"qm9_bonds_energies_{basis}_{target}.h5"
-    out_h5_path = os.path.join(out_dir, out_h5_name)
-    df_merged.to_hdf(out_h5_path, key='data', mode='w')
+    # out_h5_name = f"qm9_bonds_energies_{basis}_{target}.h5"
+    # out_h5_path = os.path.join(out_dir, out_h5_name)
+    # df_merged.to_hdf(out_h5_path, key='data', mode='w')
     # logging.info(f"Merged data with energies saved to: {out_h5_path}")
 
     update_failed_indices(failed_out_path, failed_indices)

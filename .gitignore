@@ -1,14 +1,61 @@
+# CSV output files
 src/csv/
-src/png/
-src/test/
+*.csv
+!requirements.txt
 
-qm9_orca_work/qm9_orca_work_molecu
-qm9_orca_work/qm9_orca_work_molecu/c
-qm9_orca_work/qm9_orca_work_molecu/f
-qm9_orca_work/qm9_orca_work_molecu/h
-qm9_orca_work/qm9_orca_work_molecu/o
-qm9_orca_work/qm9_orca_work_molecu/n
+# PNG files
+src/png/
+*.png
+
+# Test directories
+src/test/
+tdnn/test/
+
+# ORCA work directories
+qm9_orca_work/qm9_orca_work_molecu/
+qm9_orca_work/qm9_orca_work_elem/c/
+qm9_orca_work/qm9_orca_work_elem/f/
+qm9_orca_work/qm9_orca_work_elem/h/
+qm9_orca_work/qm9_orca_work_elem/n/
+qm9_orca_work/qm9_orca_work_elem/o/
+qm9_orca_work/qm9_orca_work_elem/orca_outputs/
+
+# XYZ files
 qm9_xyz_files/
+*.xyz
 dsgdb9nsd.xyz.tar.bz2
 
-tdnn/test
+# HDF5 files
+src/hdf5/
+*.h5
+*.hdf5
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp

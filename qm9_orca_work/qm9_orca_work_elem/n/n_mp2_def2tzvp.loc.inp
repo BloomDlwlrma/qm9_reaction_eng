@@ -1,0 +1,28 @@
+/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/n/n_mp2_def2tzvp.loc      # LOC::GBW_in     
+/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/n/n_mp2_def2tzvp.loc      # LOC::GBW_out    
+0      # LOC::omin       
+0      # LOC::omax       
+6      # LOC::LocMet     
+0      # LOC::op         
+128      # LOC::MaxIter    
+   9.9999999999999995e-07 # LOC::Tol        
+   0.0000000000000000e+00 # LOC::TolRel     
+   9.4999999999999996e-01 # LOC::T_Strong   
+   8.4999999999999998e-01 # LOC::T_Bond     
+2      # LOC::PrintLevel 
+1      # LOC::Cholesky   
+0      # LOC::Randomize  
+0      # LOC::PopMethod  
+0      # LOC::OrbSpread  
+16      # LOC::DVDNRoots     
+40      # LOC::DVDNRootsFinal
+10      # LOC::DVDMaxDim     
+128      # LOC::DVDMaxIter    
+  -5.0000000000000000e+00 # LOC::T_Core     
+   9.4999999999999996e-01 # LOC::TCutFrag   
+1      # LOC::LocOcc     
+0      # LOC::LocVirt    
+0      # LOC::PrintLMOs  
+0      # LOC::FragmentReorder
+1      # LOC::NAttempts  
+0      # LOC::my_id      

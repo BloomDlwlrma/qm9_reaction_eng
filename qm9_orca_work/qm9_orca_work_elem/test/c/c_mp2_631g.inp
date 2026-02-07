@@ -1,6 +1,0 @@
-! MP2 6-31G TightSCF SCFConvForced
-%pal nprocs 16 end
-%maxcore 5000         
-*xyz 0 3            
-C  0.000000  0.000000  0.000000
-*

@@ -1,0 +1,9 @@
+! RI-MP2 6-31G* def2/JK RIJK def2-SVP/C
+%maxcore 8000
+%method
+FrozenCore FC_ELECTRONS
+end
+
+*xyz 0 3
+O 0.0 0.0 0.0
+*

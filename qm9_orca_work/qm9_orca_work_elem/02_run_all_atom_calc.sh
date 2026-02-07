@@ -2,8 +2,8 @@
 set -euo pipefail # exit on error, undefined var, or failed pipe
 
 ATOMS=("C" "H" "O" "N" "F")
-METHODS=("MP2" "CCSD" "CCSD(T)")
 
+METHODS=("MP2" "CCSD" "CCSD(T)")
 # Method and Basis sets mapping: key -> ORCA format
 declare -A METHOD_MAP=(
     ["MP2"]="RI-MP2"
@@ -22,6 +22,19 @@ declare -A BASIS_MAP=(
     ["321g"]="3-21G"
 )
 BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "def2svp" "def2tzvp" "ccpvdz" "ccpvtz" "321g")
+# METHODS=("MP2")
+# # Method and Basis sets mapping: key -> ORCA format
+# declare -A METHOD_MAP=(
+#     ["MP2"]="RI-MP2"
+# )
+# declare -A BASIS_MAP=(
+#     ["631g"]="6-31G"
+#     ["631gs"]="6-31G*"
+#     ["631gss"]="6-31G**"
+#     ["631+gss"]="6-31+G**"
+#     ["321g"]="3-21G"
+# )
+# BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "321g")
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 out_dir="${script_dir}/orca_outputs"
@@ -41,6 +54,10 @@ for atom in "${ATOMS[@]}"; do
 
             infile="${script_dir}/${atom_lc}/${atom_lc}_${method_lc}_${basis_key}.inp"
             outfile="${out_dir}/${atom_lc}_${method_lc}_${basis_key}.out"
+            
+            # Remove previously generated files (keep only .inp)
+            rm -f "${outfile}"
+            rm -f "${out_dir}/${atom_lc}_${method_lc}_${basis_key}".{gbw,prop,engrad,xyz,trj,densities,tmp}
 
             if [[ ! -f "${infile}" ]]; then
                 echo "ERROR: missing input file: ${infile}" >&2

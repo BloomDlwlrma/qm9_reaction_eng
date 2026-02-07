@@ -1,0 +1,73 @@
+   1   2   2   1   0   2   2  -1      8000   0
+ 1.0000000000000000e-10 9.9999999999999994e-12 -1.0000000000000000e+00 0 3 1.0000000000000001e-15 9.9999999999999995e-07 1.1000000000000001e+00
+0 0 1 1 1 1 1 0 0 20 0 9.0000000000000000e+00 
+10 6 6 44 0 150 3 20 0 0 1.0000000000000000e+00 1.0000000000000000e-10
+10 12 6 44 0 300 3 20 0 0 1.0000000000000000e+00 1.0000000000000000e-10
+12 6 6 44 0 300 3 20 0 0 1.0000000000000000e+00 1.0000000000000000e-10
+10 6 6 44 0 150 3 20 0 0 1.0000000000000000e+00 1.0000000000000000e-10
+ 0 0.0000000000000000e+00 1.0000000000000000e+00 0.0000000000000000e+00 0 0.0000000000000000e+00 1.0000000000000000e+00 0.0000000000000000e+00
+ -1 -1.0000000000000000e+00 
+-1 -1 
+  1   2  -1   1.0000000000000000e+00   0.0000000000000000e+00   0.0000000000000000e+00   0.0000000000000000e+00       2.124823917100e+09
+   0   2   0
+     5.4471780000000001e+00   3.9715132056846780e-01
+     8.2454700000000003e-01   5.5791992333255569e-01
+   0   1   1
+     1.8319199999999999e-01   1.9956757048388610e-01
+ 0 0 
+   6  18
+   6 
+   0   3   0
+     2.2068342999999999e+01   3.0795901629809852e-01
+     4.3905712000000001e+00   6.8267918100356761e-01
+     1.0540787000000000e+00   5.4422307252245139e-01
+   0   1   1
+     2.7178740000000001e-01   2.6827616008670746e-01
+   1   1   2
+     1.8529979000000001e+00   3.0816530855709674e+00
+   1   1   5
+     3.8810339999999999e-01   4.3664088358288211e-01
+   2   1   8
+     2.5579933000000001e+00   1.4750068531992685e+01
+   2   1  13
+     3.2926490000000003e-01   4.0801356130959832e-01
+1 
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VAUXJK.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VCDJK.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.SQRTVJK.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VpCDJK.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VpCDpivJK.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VINVJK.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VJRSJK.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VXRSJK.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VM12JK.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.PRSCRJK.tmp]
+   6  14
+   6 
+   0   2   0
+     9.3352160899999994e+00   1.3274932388359650e+00
+     1.8611070400000000e+00   8.3986438367140548e-01
+   0   1   1
+     5.9512465999999997e-01   4.8290983679898675e-01
+   0   1   2
+     2.6448099000000003e-01   2.6284876367686966e-01
+   1   2   3
+     2.4524982099999999e+00   3.6946647740070115e-01
+     1.3540383000000000e+00   1.9228138783988489e+00
+   1   1   6
+     5.9522394000000001e-01   7.4523042246094828e-01
+   2   2   9
+     1.5816376599999999e+00   6.3911042527643236e+00
+     6.2743959999999999e-01  -9.0844253262292798e-03
+1 
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VAUXC.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VCDC.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.SQRTVC.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VpCDC.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VpCDpivC.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VINVC.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VJRSC.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VXRSC.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.VM12C.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g.PRSCRC.tmp]
+[/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsdt_321g]

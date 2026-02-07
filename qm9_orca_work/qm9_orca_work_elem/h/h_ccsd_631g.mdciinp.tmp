@@ -1,4 +1,4 @@
-/home/ubuntu/qc/orca_work_qm9/h/h_ccsd_631g.gbw         # The GBW file                                 
+/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/h/h_ccsd_631g.gbw         # The GBW file                                 
 8         # The CIType                                   
 1.000000e+00      # Scaling parameter for A and B terms in pCCSD 
 1.000000e+00      # Scaling parameter for C and D terms in pCCSD 
@@ -6,12 +6,12 @@
 0.000000e+00      # Scaling parameter for doubles norm in SCPF   
 2         # The level of perturbation theory             
 50         # Max. No. of iterations                       
-5000         # Max. amount of core memory to use     
+8000         # Max. amount of core memory to use     
 0         # Data-type for storage                 
 0         # How to store data (ondisk, incore ... 
 0         # Compression type for storage          
--1         # InCore level for storage              
-5         # Type of transformation                
+0         # InCore level for storage              
+4         # Type of transformation                
 0         # Aux Type                              
 1         # Type of IJVBlock                      
 1         # NrMP2Pairs_Trip                       
@@ -47,15 +47,15 @@
 0         # Compute NTOs from a STEOM computation
 0         # For debugging the direct STEOM dressing
 1         # iroot                                 
-2         # PrintLevel                            
+4         # PrintLevel                            
 1.000e-02      # TPrint                                
-0         # Use localization                      
+1         # Use localization                      
 6         # Localization method                   
 0         # Randomize Localization                
 1         # Number of Randomized Localizations    
 -1.000e+00      # Localization Threshold               
 1.000e-06      # Localization Threshold (LED)         
-0.000e+00      # Relative Localization Threshold      
+1.000e-08      # Relative Localization Threshold      
 9.000e-01      # Delocalization Threshold (LED)       
 9.000e-01      # Overlap Threshold (LED)              
 128         # Maximum localization iterations       
@@ -69,8 +69,8 @@
 1         # LED for Hf                            
 0         # Use T2 instead of Tau  (LED)          
          # The GBW file of localized orbitals    
-5         # Option for K(C)                       
-0 0 1 0 0 0 0 0 0 0# Options for PNO construction           
+8         # Option for K(C)                       
+1 0 1 0 0 0 0 1 1 0# Options for PNO construction           
 1         # PNO integrals storage?                
 0         # F12 correction?                       
 0         # F12d correction?                      
@@ -212,8 +212,8 @@
 0         # Size of initial (singles) guess space 
 1         # Use optimized EOM sigma for singles?  
 1         # Use optimized EOM sigma for doubles?  
-0         # QRO usage in UHF?                     
-0         # Usage of RHF integrals in UHF?        
+1         # QRO usage in UHF?                     
+1         # Usage of RHF integrals in UHF?        
 0         # Use genuine UHF LPNO version          
 0         # Usage of accurate JK Dressing?        
 0         # Make Natural orbitals or not          
@@ -230,7 +230,7 @@
 0         # Do MRPT for S amplitudes              
 0         # Print orbital selection density eigenvalues 
 0         # Use T1 in orbital selection density construction 
-0         # Use DLPNOLinearAlgo                   
+1         # Use DLPNOLinearAlgo                   
 2         # Option for Hbar permutation symmetry  
   1.0000000000000000e-02    #Threshold for singular PT              
   0.0000000000000000e+00    #Threshold for core orbital selection   
@@ -247,13 +247,13 @@
 0         # Zero MREOM TUAB Amplitudes            
 0         # Zero MREOM IJTA Amplitudes            
   9.9999999999999994e-12    # CutOff for integrals                  
-  0.0000000000000000e+00    # CutOff for pair correlation energies  
-  0.0000000000000000e+00  -1.0000000000000000e+00   9.6999999999999997e-01   0.0000000000000000e+00 # TCutPNO,TCutPNOSingles,TCutEN,TCutMKN
+  9.9999999999999995e-07    # CutOff for pair correlation energies  
+  3.3299999999999998e-07  -1.0000000000000000e+00   9.6999999999999997e-01   1.0000000000000000e-03 # TCutPNO,TCutPNOSingles,TCutEN,TCutMKN
   0.0000000000000000e+00 1   1.0000000000000000e+02 # TCutTNO,NTCutTNO,TCutTNOStep
  -1.0000000000000000e+00   1.0000000000000001e-01  -1.0000000000000000e+00   1.0000000000000001e-05   9.9999999999999995e-07 # TCutDomain,TCutDeloc,TCutPreScr,TCutDOij,TCutOSV
   1.0000000000000000e-04   1.0000000000000000e-03   1.0000000000000000e-03   1.0000000000000000e-02  -1.0000000000000000e+00 # TCutC,TCutCMO,TCutC_PAO,TCutDO,TCutDOAux
   1.0000000000000000e+01   0.0000000000000000e+00 # TScaleTaa,TCutGSO
-0         # Use PNOs for SinglesFock              
+1         # Use PNOs for SinglesFock              
 1         # Use semicanonical PAO basis for Singles PNOs
 0.030000        # Threshold for domains in prescreening 
   1.0000000000000000e+00   1.0000000000000000e+00  # Pair, PNO cut intermolecular 
@@ -366,7 +366,7 @@
 1   #Atom pairs linked by a covalent bond in LED 
 0 0    # Covalentely Bonded Atoms     
 0         # Mode for treating Singles in Multilevel schemes
-  1.0000000000000001e-05    # Convergance tolerance for the residual
+  2.5000000000000001e-05    # Convergance tolerance for the residual
   1.0000000000000000e-14    # Convergance tolerance for any orthogonalization
 1         # PrecondOpt
   2.0000000000000001e-01    # Level shift for amplitude update      
@@ -374,7 +374,7 @@
 0   3.3333333333333331e-01   1.2000000000000000e+00  # SCS-MP2 use  
   1.0000000000000000e+00   1.0000000000000000e+00   1.0000000000000000e+00   1.0000000000000000e+00   1.0000000000000000e+00  # CEPA-EXP scalings
 -1 50   9.9999999999999995e-08   4.9999999999999998e-07   1.0000000000000001e-05   1.0000000000000000e-08   3.0030030030030033e-02 # LMP2 options
-0         # NewDomains                            
+1         # NewDomains                            
 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 # Flags for sigma calc
 0 -1 -1 -1 -1 T12DUMP #Tailored CC
 1 #Recanonicalize

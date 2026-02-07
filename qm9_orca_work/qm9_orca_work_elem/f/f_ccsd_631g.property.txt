@@ -20,7 +20,7 @@ $End
 $SCF_Energy
    &GeometryIndex 1
    &ListStatus       OUT
-   &SCF_ENERGY [&Type "Double"]      -9.9360859540534790e+01
+   &SCF_ENERGY [&Type "Double"]      -9.9360849265145475e+01
 $End
 $Mulliken_Population_Analysis
    &GeometryIndex 1
@@ -61,7 +61,7 @@ $Mayer_Population_Analysis
    &NA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mulliken gross atomic population"
                                                          0
 
-0                                      8.9999999999999929e+00
+0                                      8.9999999999999840e+00
    &ZA [&Type "ArrayOfDoubles", &Dim (1,1)] "Total nuclear charge"
                                                          0
 
@@ -73,7 +73,7 @@ $Mayer_Population_Analysis
    &VA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's total valence"
                                                          0
 
-0                                      1.0018112494432379e+00
+0                                      1.0018116047959964e+00
    &BVA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's bonded valence"
                                                          0
 
@@ -81,26 +81,59 @@ $Mayer_Population_Analysis
    &FA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's free valence"
                                                          0
 
-0                                      1.0018112494432379e+00
+0                                      1.0018116047959964e+00
+$End
+$Natural_Orbitals
+   &GeometryIndex 1
+   &ListStatus       OUT
+   &NEL [&Type "Integer"] 9
+   &NSOMO [&Type "Integer"] 1
+   &NDOMO [&Type "Integer"] 4
+   &NVMO [&Type "Integer"] 4
+   &NNATOORBS [&Type "Integer"] 9
+   &OCCUNO [&Type "ArrayOfDoubles", &Dim (9,1)] "Occupation  of natural orbitals"
+                                                         0
+
+0                                      1.9999999999999944e+00
+1                                      1.9998685581478794e+00
+2                                      1.9998685581478772e+00
+3                                      1.9998099471682316e+00
+4                                      9.9999999999999656e-01
+5                                      1.9005283175670609e-04
+6                                      1.3144185211778800e-04
+7                                      1.3144185211762859e-04
+8                                      0.0000000000000000e+00
+   &OCCUNSO [&Type "ArrayOfDoubles", &Dim (9,1)] "Occupation of spin natural orbitals"
+                                                         0
+
+0                                      9.9999999999999678e-01
+1                                      1.9495372359448510e-02
+2                                      1.6213155993680641e-02
+3                                      1.6213155993678219e-02
+4                                      0.0000000000000000e+00
+5                                      0.0000000000000000e+00
+6                                     -1.6213155993679850e-02
+7                                     -1.6213155993680201e-02
+8                                     -1.9495372359448936e-02
 $End
 $MDCI_Energies
    &GeometryIndex 1
    &ListStatus       OUT
    &NUMOFEL [&Type "Integer"] 9
    &NUMOFCORREL [&Type "Integer"] 7
-   &NUMOFALPHACORREL [&Type "Integer"] 4
-   &NUMOFBETACORREL [&Type "Integer"] 3
-   &REFENERGY [&Type "Double"]      -9.9360859541489106e+01
-   &CORRENERGY [&Type "Double"]      -8.5137556227064259e-02  "Total Correlation Energy"
-   &AACORREN [&Type "Double"]      -1.3279427819270880e-02  "Alpha-Alpha Pairs Correlation Energy (No (T))"
-   &BBCORREN [&Type "Double"]      -5.6135490820122917e-03  "Beta-Beta Pairs Correlation Energy (No (T))"
-   &ABCORREN [&Type "Double"]      -6.6244657144476859e-02  "Alpha-Beta Pairs Correlation Energy (No (T))"
+   &NUMOFALPHACORREL [&Type "Integer"] 7
+   &NUMOFBETACORREL [&Type "Integer"] 7
+   &REFENERGY [&Type "Double"]      -9.9360203100702506e+01
+   &CORRENERGY [&Type "Double"]      -8.5733774701358151e-02  "Total Correlation Energy"
+   &AACORREN [&Type "Double"]      -1.3410822834896771e-02  "Alpha-Alpha Pairs Correlation Energy (No (T))"
+   &BBCORREN [&Type "Double"]      -5.5269657664034182e-03  "Beta-Beta Pairs Correlation Energy (No (T))"
+   &ABCORREN [&Type "Double"]      -6.6247010400084669e-02  "Alpha-Beta Pairs Correlation Energy (No (T))"
    &CORRDS [&Type "Double"]       0.0000000000000000e+00  "Singlet pairs energy of double amplitudes (No (T))"
    &CORRDT [&Type "Double"]       0.0000000000000000e+00  "Triplet pairs energy of double amplitudes (No (T))"
    &CORRSS [&Type "Double"]       0.0000000000000000e+00  "Singlet pairs energy of quadratic single amplitudes (No (T))"
    &CORRST [&Type "Double"]       0.0000000000000000e+00  "Triplet pairs energy of quadratic single amplitudes (No (T))"
    &TRIPLESENERGY [&Type "Double"]       0.0000000000000000e+00  "Triples Correction Energy"
-   &TOTALENERGY [&Type "Double"]      -9.9445997097716173e+01
+   &TOTALENERGY [&Type "Double"]      -9.9445936875403859e+01
 $End
 $Mayer_Population_Analysis
    &GeometryIndex 1
@@ -115,7 +148,7 @@ $Mayer_Population_Analysis
    &NA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mulliken gross atomic population"
                                                          0
 
-0                                      8.9999999999999947e+00
+0                                      8.9999999999999964e+00
    &ZA [&Type "ArrayOfDoubles", &Dim (1,1)] "Total nuclear charge"
                                                          0
 
@@ -127,7 +160,7 @@ $Mayer_Population_Analysis
    &VA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's total valence"
                                                          0
 
-0                                      1.1493290236669289e+00
+0                                      1.1491294925819771e+00
    &BVA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's bonded valence"
                                                          0
 
@@ -135,7 +168,7 @@ $Mayer_Population_Analysis
    &FA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's free valence"
                                                          0
 
-0                                      1.1493290236669289e+00
+0                                      1.1491294925819771e+00
 $End
 $Calculation_Info
    &GeometryIndex 1
@@ -147,11 +180,11 @@ $Calculation_Info
    &NUMOFFCELECTRONS [&Type "Integer"] 1
    &NUMOFCORRELECTRONS [&Type "Integer"] 0
    &NUMOFBASISFUNCTS [&Type "Integer"] 9
-   &NUMOFAUXCBASISFUNCTS [&Type "Integer"] 0
+   &NUMOFAUXCBASISFUNCTS [&Type "Integer"] 48
    &NUMOFAUXJBASISFUNCTS [&Type "Integer"] 0
-   &NUMOFAUXJKBASISFUNCTS [&Type "Integer"] 0
+   &NUMOFAUXJKBASISFUNCTS [&Type "Integer"] 77
    &NUMOFCABSBASISFUNCTS [&Type "Integer"] 0
-   &TOTALENERGY [&Type "Double"]      -9.9445997097716173e+01  "Hartrees"
+   &TOTALENERGY [&Type "Double"]      -9.9445936875403859e+01  "Hartrees"
 $End
 $SCF_Dipole_Moment
    &GeometryIndex 1
@@ -181,7 +214,7 @@ $SCF_Dipole_Moment
 0                                      0.0000000000000000e+00
 1                                      0.0000000000000000e+00
 2                                      0.0000000000000000e+00
-   &DIPOLEMAGNITUDE [&Type "Double", &Units "a.u."]       3.3181701518324923e-15
+   &DIPOLEMAGNITUDE [&Type "Double", &Units "a.u."]       6.6751743851774085e-15
 $End
 $MDCI_Dipole_Moment
    &GeometryIndex 1
@@ -211,5 +244,5 @@ $MDCI_Dipole_Moment
 0                                      0.0000000000000000e+00
 1                                      0.0000000000000000e+00
 2                                      0.0000000000000000e+00
-   &DIPOLEMAGNITUDE [&Type "Double", &Units "a.u."]       2.3106446473321911e-15
+   &DIPOLEMAGNITUDE [&Type "Double", &Units "a.u."]       1.5766756767758149e-14
 $End

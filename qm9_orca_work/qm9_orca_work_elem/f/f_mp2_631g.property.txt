@@ -5,7 +5,7 @@ $Calculation_Status
    &GeometryIndex 1
    &ListStatus       OUT
    &VERSION [&Type "String"] "6.0.1"
-   &PROGNAME [&Type "String"] "ProgMP2"
+   &PROGNAME [&Type "String"] "ProgMDCI"
    &STATUS [&Type "String"] "NORMAL TERMINATION"
 $End
 $Geometry
@@ -20,7 +20,7 @@ $End
 $SCF_Energy
    &GeometryIndex 1
    &ListStatus       OUT
-   &SCF_ENERGY [&Type "Double"]      -9.9360859540534790e+01
+   &SCF_ENERGY [&Type "Double"]      -9.9360859541532065e+01
 $End
 $Mulliken_Population_Analysis
    &GeometryIndex 1
@@ -50,7 +50,68 @@ $Loewdin_Population_Analysis
 $End
 $Mayer_Population_Analysis
    &GeometryIndex 1
+   &ListStatus       FIRST
+   &NATOMS [&Type "Integer"] 1 "Total number of atoms"
+   &BONDTHRESH [&Type "Double"]       1.0000000000000001e-01  "The threshold for printing"
+   &NBONDORDERSPRINT [&Type "Integer"] 0 "The number of bond orders larger than threshold"
+   &ATNO [&Type "ArrayOfIntegers", &Dim (1,1)] "Atomic number of the elements"
+                                                         0
+
+0                                                        9
+   &NA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mulliken gross atomic population"
+                                                         0
+
+0                                      8.9999999999999876e+00
+   &ZA [&Type "ArrayOfDoubles", &Dim (1,1)] "Total nuclear charge"
+                                                         0
+
+0                                      9.0000000000000000e+00
+   &QA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mulliken gross atomic charge"
+                                                         0
+
+0                                      0.0000000000000000e+00
+   &VA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's total valence"
+                                                         0
+
+0                                      1.0018116949337159e+00
+   &BVA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's bonded valence"
+                                                         0
+
+0                                      0.0000000000000000e+00
+   &FA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's free valence"
+                                                         0
+
+0                                      1.0018116949337159e+00
+$End
+$MP2_Energies
+   &GeometryIndex 1
    &ListStatus       OUT
+   &REFENERGY [&Type "Double"]      -9.9360859541532065e+01  "Reference Energy"
+   &CORRENERGY [&Type "Double"]      -7.9217697882915675e-02  "MP2 correlation energy"
+   &TOTALENERGY [&Type "Double"]      -9.9440077239414975e+01  "MP2 total energy"
+$End
+$MDCI_Energies
+   &GeometryIndex 1
+   &ListStatus       OUT
+   &NUMOFEL [&Type "Integer"] 9
+   &NUMOFCORREL [&Type "Integer"] 7
+   &NUMOFALPHACORREL [&Type "Integer"] 4
+   &NUMOFBETACORREL [&Type "Integer"] 3
+   &REFENERGY [&Type "Double"]      -9.9360859541542652e+01
+   &CORRENERGY [&Type "Double"]      -8.5287624834723130e-02  "Total Correlation Energy"
+   &AACORREN [&Type "Double"]      -1.3321959010236374e-02  "Alpha-Alpha Pairs Correlation Energy (No (T))"
+   &BBCORREN [&Type "Double"]      -5.6253910819734970e-03  "Beta-Beta Pairs Correlation Energy (No (T))"
+   &ABCORREN [&Type "Double"]      -6.6340278849413431e-02  "Alpha-Beta Pairs Correlation Energy (No (T))"
+   &CORRDS [&Type "Double"]       0.0000000000000000e+00  "Singlet pairs energy of double amplitudes (No (T))"
+   &CORRDT [&Type "Double"]       0.0000000000000000e+00  "Triplet pairs energy of double amplitudes (No (T))"
+   &CORRSS [&Type "Double"]       0.0000000000000000e+00  "Singlet pairs energy of quadratic single amplitudes (No (T))"
+   &CORRST [&Type "Double"]       0.0000000000000000e+00  "Triplet pairs energy of quadratic single amplitudes (No (T))"
+   &TRIPLESENERGY [&Type "Double"]       0.0000000000000000e+00  "Triples Correction Energy"
+   &TOTALENERGY [&Type "Double"]      -9.9446147166377372e+01
+$End
+$Mayer_Population_Analysis
+   &GeometryIndex 1
+   &ListStatus       LAST
    &NATOMS [&Type "Integer"] 1 "Total number of atoms"
    &BONDTHRESH [&Type "Double"]       1.0000000000000001e-01  "The threshold for printing"
    &NBONDORDERSPRINT [&Type "Integer"] 0 "The number of bond orders larger than threshold"
@@ -73,7 +134,7 @@ $Mayer_Population_Analysis
    &VA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's total valence"
                                                          0
 
-0                                      1.0018112494432379e+00
+0                                      1.1496116038502460e+00
    &BVA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's bonded valence"
                                                          0
 
@@ -81,14 +142,7 @@ $Mayer_Population_Analysis
    &FA [&Type "ArrayOfDoubles", &Dim (1,1)] "Mayer's free valence"
                                                          0
 
-0                                      1.0018112494432379e+00
-$End
-$MP2_Energies
-   &GeometryIndex 1
-   &ListStatus       OUT
-   &REFENERGY [&Type "Double"]      -9.9360859540534790e+01  "Reference Energy"
-   &CORRENERGY [&Type "Double"]      -7.9237324127691258e-02  "MP2 correlation energy"
-   &TOTALENERGY [&Type "Double"]      -9.9440096864662479e+01  "MP2 total energy"
+0                                      1.1496116038502460e+00
 $End
 $Calculation_Info
    &GeometryIndex 1
@@ -100,15 +154,15 @@ $Calculation_Info
    &NUMOFFCELECTRONS [&Type "Integer"] 1
    &NUMOFCORRELECTRONS [&Type "Integer"] 0
    &NUMOFBASISFUNCTS [&Type "Integer"] 9
-   &NUMOFAUXCBASISFUNCTS [&Type "Integer"] 0
+   &NUMOFAUXCBASISFUNCTS [&Type "Integer"] 48
    &NUMOFAUXJBASISFUNCTS [&Type "Integer"] 0
    &NUMOFAUXJKBASISFUNCTS [&Type "Integer"] 0
    &NUMOFCABSBASISFUNCTS [&Type "Integer"] 0
-   &TOTALENERGY [&Type "Double"]      -9.9440096864662479e+01  "Hartrees"
+   &TOTALENERGY [&Type "Double"]      -9.9446147166377372e+01  "Hartrees"
 $End
 $SCF_Dipole_Moment
    &GeometryIndex 1
-   &ListStatus       OUT
+   &ListStatus       FIRST
    &METHOD [&Type "String"] "SCF"
    &LEVEL [&Type "String"] "Relaxed density"
    &MULT [&Type "Integer"] 2
@@ -134,5 +188,35 @@ $SCF_Dipole_Moment
 0                                      0.0000000000000000e+00
 1                                      0.0000000000000000e+00
 2                                      0.0000000000000000e+00
-   &DIPOLEMAGNITUDE [&Type "Double", &Units "a.u."]       3.3181701518324923e-15
+   &DIPOLEMAGNITUDE [&Type "Double", &Units "a.u."]       6.2118138691492778e-15
+$End
+$MDCI_Dipole_Moment
+   &GeometryIndex 1
+   &ListStatus       LAST
+   &METHOD [&Type "String"] "MDCI(SD)"
+   &LEVEL [&Type "String"] "Linearized density"
+   &MULT [&Type "Integer"] 2
+   &STATE [&Type "Integer"] -1
+   &IRREP [&Type "Integer"] 0
+   &NATOMS [&Type "Integer"] 1
+   &DODIPOLEATOM [&Type "Boolean"] false
+   &DIPOLEELECCONTRIB [&Type "ArrayOfDoubles", &Dim (3,1)] "Electronic contribution"
+                                                         0
+
+0                                      3.0336822407579077e-08
+1                                      1.5096972179949100e-07
+2                                     -2.8181950758361298e-08
+   &DIPOLENUCCONTRIB [&Type "ArrayOfDoubles", &Dim (3,1)] "Nuclear contribution"
+                                                         0
+
+0                                      0.0000000000000000e+00
+1                                      0.0000000000000000e+00
+2                                      0.0000000000000000e+00
+   &DIPOLETOTAL [&Type "ArrayOfDoubles", &Dim (3,1)] "Total"
+                                                         0
+
+0                                      3.0336822407579077e-08
+1                                      1.5096972179949100e-07
+2                                     -2.8181950758361298e-08
+   &DIPOLEMAGNITUDE [&Type "Double", &Units "a.u."]       1.5654520766395693e-07
 $End

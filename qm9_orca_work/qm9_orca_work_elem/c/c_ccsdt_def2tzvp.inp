@@ -1,0 +1,19 @@
+! DLPNO-CCSD(T) def2-TZVP def2/JK RIJK def2-TZVP/C
+%maxcore 8000
+%method
+FrozenCore FC_ELECTRONS
+end
+
+%mdci
+   TCutPairs 1e-6
+   printlevel 4
+end
+
+%loc
+LocMet AHFB
+OCC true
+end
+
+*xyz 0 3
+C 0.0 0.0 0.0
+*

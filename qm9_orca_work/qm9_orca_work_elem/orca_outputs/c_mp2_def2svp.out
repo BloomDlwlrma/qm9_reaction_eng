@@ -1,0 +1,1667 @@
+
+                                 *****************
+                                 * O   R   C   A *
+                                 *****************
+
+                                            #,                                       
+                                            ###                                      
+                                            ####                                     
+                                            #####                                    
+                                            ######                                   
+                                           ########,                                 
+                                     ,,################,,,,,                         
+                               ,,#################################,,                 
+                          ,,##########################################,,             
+                       ,#########################################, ''#####,          
+                    ,#############################################,,   '####,        
+                  ,##################################################,,,,####,       
+                ,###########''''           ''''###############################       
+              ,#####''   ,,,,##########,,,,          '''####'''          '####       
+            ,##' ,,,,###########################,,,                        '##       
+           ' ,,###''''                  '''############,,,                           
+         ,,##''                                '''############,,,,        ,,,,,,###''
+      ,#''                                            '''#######################'''  
+     '                                                          ''''####''''         
+             ,#######,   #######,   ,#######,      ##                                
+            ,#'     '#,  ##    ##  ,#'     '#,    #''#        ,####,   ,####,        
+            ##       ##  ##   ,#'  ##            #'  '#       #'       #'  '#        
+            ##       ##  #######   ##           ,######,      #####,   #    #        
+            '#,     ,#'  ##    ##  '#,     ,#' ,#      #,     #,   #   #,  ,#        
+             '#######'   ##     ##  '#######'  #'      '#     '####' # '####'        
+
+
+
+                #########################################################
+                #                        -***-                          #
+                #          Department of theory and spectroscopy        #
+                #                                                       #
+                #                      Frank Neese                      #
+                #                                                       #
+                #     Directorship, Architecture, Infrastructure        #
+                #                    SHARK, DRIVERS                     #
+                #        Core code/Algorithms in most modules           #
+                #                                                       #
+                #        Max Planck Institute fuer Kohlenforschung      #
+                #                Kaiser Wilhelm Platz 1                 #
+                #                 D-45470 Muelheim/Ruhr                 #
+                #                      Germany                          #
+                #                                                       #
+                #                  All rights reserved                  #
+                #                        -***-                          #
+                #########################################################
+
+
+                         Program Version 6.0.1  -  RELEASE   -
+
+
+ With contributions from (in alphabetic order):
+[Max-Planck-Institut fuer Kohlenforschung]                               
+  Daniel Aravena         : Magnetic Suceptibility                        
+  Michael Atanasov       : Ab Initio Ligand Field Theory (pilot matlab implementation)
+  Alexander A. Auer      : GIAO ZORA, VPT2 properties, NMR spectrum      
+  Ute Becker             : All parallelization in ORCA, NUMFREQ, NUMCALC 
+  Giovanni Bistoni       : ED, misc. LED, open-shell LED, HFLD           
+  Martin Brehm           : Molecular dynamics                            
+  Dmytro Bykov           : pre 5.0 version of the SCF Hessian            
+  Marcos Casanova-Páez   : Triplet and SCS-CIS(D). UHF-(DLPNO)-IP/EA/STEOM-CCSD. UHF-CVS-IP/STEOM-CCSD   
+  Vijay G. Chilkuri      : MRCI spin determinant printing, contributions to CSF-ICE 
+  Pauline Colinet        : FMM embedding                                 
+  Dipayan Datta          : RHF DLPNO-CCSD density                        
+  Achintya Kumar Dutta   : EOM-CC, STEOM-CC                              
+  Nicolas Foglia         : Exact transition moments, OPA infrastructure, MCD improvements    
+  Dmitry Ganyushin       : Spin-Orbit,Spin-Spin,Magnetic field MRCI      
+  Miquel Garcia-Rates    : C-PCM and meta-GGA Hessian, CCSD/C-PCM, Gaussian charge scheme 
+  Tiago L. C. Gouveia    : GS-ROHF, GS-ROCIS                             
+  Yang Guo               : DLPNO-NEVPT2, F12-NEVPT2, CIM, IAO-localization        
+  Andreas Hansen         : Spin unrestricted coupled pair/coupled cluster methods 
+  Ingolf Harden          : AUTO-CI MPn and infrastructure                
+  Benjamin Helmich-Paris : MC-RPA, TRAH-(SCF,CASSCF), AVAS, COSX integrals, SCF dyn. polar. 
+  Lee Huntington         : MR-EOM, pCC                                   
+  Robert Izsak           : Overlap fitted RIJCOSX, COSX-SCS-MP3, EOM     
+  Riya Kayal             : Wick's Theorem for AUTO-CI, AUTO-CI UHF-CCSDT 
+  Emily Kempfer          : AUTO-CI, RHF CISDT and CCSDT                  
+  Christian Kollmar      : KDIIS, OOCD, Brueckner-CCSD(T), CCSD density, CASPT2, CASPT2-K, improved NEVPT2 
+  Axel Koslowski         : Symmetry handling                             
+  Simone Kossmann        : meta-GGA functionals, TD-DFT gradient, OOMP2, (MP2 Hessian; deprecated post 5.0) 
+  Lucas Lang             : DCDCAS                                        
+  Marvin Lechner         : AUTO-CI (C++ implementation), FIC-MRCC        
+  Spencer Leger          : CASSCF response                               
+  Dagmar Lenk            : GEPOL surface, SMD, ORCA-2-JSON               
+  Dimitrios Liakos       : Extrapolation schemes; Compound Job, initial MDCI parallelization 
+  Dimitrios Manganas     : Further ROCIS development; embedding schemes. LFT, Crystal Embedding 
+  Dimitrios Pantazis     : SARC Basis sets                               
+  Anastasios Papadopoulos: AUTO-CI, single reference methods and gradients 
+  Taras Petrenko         : pre 6.0 DFT Hessian and TD-DFT gradient, (ASA, deprecated), ECA, 1-Electron XAS/XES, NRVS 
+  Peter Pinski           : DLPNO-MP2, DLPNO-MP2 Gradient                 
+  Christoph Reimann      : Effective Core Potentials                     
+  Marius Retegan         : Local ZFS, SOC                                
+  Christoph Riplinger    : Optimizer, TS searches, QM/MM, DLPNO-CCSD(T), (RO)-DLPNO pert. Triples 
+  Michael Roemelt        : Original ROCIS implementation                 
+  Masaaki Saitow         : Open-shell DLPNO-CCSD energy and density      
+  Barbara Sandhoefer     : DKH picture change effects                    
+  Kantharuban Sivalingam : CASSCF convergence/infrastructure, NEVPT2 and variants, FIC-MRCI 
+  Bernardo de Souza      : ESD, SOC TD-DFT                               
+  Georgi L. Stoychev     : AutoAux, RI-MP2 NMR, DLPNO-MP2 response, X2C  
+  Van Anh Tran           : RI-MP2 g-tensors                              
+  Willem Van den Heuvel  : Paramagnetic NMR                              
+  Zikuan Wang            : NOTCH, Electric field optimization            
+  Frank Wennmohs         : Technical directorship and infrastructure     
+  Hang Xu                : AUTO-CI-Response properties                   
+                                                                         
+[FACCTs GmbH]                                                            
+  Markus Bursch, Miquel Garcia-Rates, Christoph Riplinger, Bernardo de Souza, Georgi L. Stoychev 
+                                                                 
+  APM, Basis sets (HGBS, AHGBS, def-TZVP (Ac-Lr), def2-XVPD (La-Lu)), CI-OPT, improved COSX, DLPNO-Multilevel,           
+  DOCKER, DRACO, updates on ESD, GOAT, IRC, LR-CPCM, MBIS, meta-GGA TD-DFT gradient, ML-optimized integration grids, 
+  MM, NACMEs, nearIR, NEB, NEB-TS, NL-DFT gradient (VV10), 2- and 3-layer-ONIOM, interface openCOSMO-RS, QMMM,   
+  Crystal-QMMM, SF, symmetry and pop. for TD-DFT, r2SCAN hybrids, SOLVATOR                                   
+                                                                         
+[Other institutions]                                                     
+  V. Asgeirsson          : NEB                                           
+  Christoph Bannwarth    : sTDA-DFT, sTD-DFT, PBEh-3c, B97-3c, D3        
+  Sebastian Ehlert       : rSCAN, r2SCAN, r2SCAN-3c, D4, dhf basis sets  
+  Marvin Friede          : D4 for Fr, Ra, Ac-Lr                          
+  Lars Goerigk           : TD-DFT with DH, B97 family of functionals     
+  Stefan Grimme          : VdW corrections, initial TS optimization, DFT functionals, gCP, sTDA/sTD-DF 
+  Waldemar Hujo          : DFT-NL                                        
+  H. Jonsson             : NEB                                           
+  Holger Kruse           : gCP                                           
+  Marcel Mueller         : wB97X-3c, vDZP basis set                      
+  Hagen Neugebauer       : wr2SCAN                                       
+  Tobias Risthaus        : range-separated hybrid DFT                    
+  Lukas Wittmann         : regularized MP2, r2SCAN double-hybrids, wr2SCAN        
+                                                                         
+We gratefully acknowledge several colleagues who have allowed us to      
+interface, adapt or use parts of their codes:                            
+  Ed Valeev, F. Pavosevic, A. Kumar             : LibInt (2-el integral package), F12 methods 
+  Garnet Chan, S. Sharma, J. Yang, R. Olivares  : DMRG                   
+  Ulf Ekstrom                                   : XCFun DFT Library      
+  Mihaly Kallay                                 : mrcc  (arbitrary order and MRCC methods)
+  Frank Weinhold                                : gennbo (NPA and NBO analysis)           
+  Simon Mueller                                 : openCOSMO-RS                            
+  Christopher J. Cramer and Donald G. Truhlar   : smd solvation model                     
+  S Lehtola, MJT Oliveira, MAL Marques          : LibXC Library                           
+  Liviu Ungur et al                             : ANISO software                          
+
+
+ Your calculation uses the libint2 library for the computation of 2-el integrals
+ For citations please refer to: http://libint.valeyev.net
+
+ Your ORCA version has been built with support for libXC version: 6.2.2
+ For citations please refer to: https://libxc.gitlab.io
+
+ This ORCA versions uses:
+   CBLAS   interface :  Fast vector & matrix operations
+   LAPACKE interface :  Fast linear algebra routines
+   SCALAPACK package :  Parallel linear algebra routines
+   Shared memory     :  Shared parallel matrices
+   BLAS/LAPACK       :  OpenBLAS 0.3.27  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell SINGLE_THREADED
+        Core in use  :  Haswell
+   Copyright (c) 2011-2014, The OpenBLAS Project
+
+
+NOTE: MaxCore=8000 MB was set to SCF,MP2,MDCI,CIPSI,MRCI and CIS
+      => If you want to overwrite this, your respective input block should be placed after the MaxCore statement
+================================================================================
+
+----- Orbital basis set information -----
+Your calculation utilizes the basis: def2-SVP
+   F. Weigend and R. Ahlrichs, Phys. Chem. Chem. Phys. 7, 3297 (2005).
+
+----- AuxC basis set information -----
+Your calculation utilizes the auxiliary basis: def2-SVP/C
+  H-La, Hf-Rn : A. Hellweg, C. Hattig, S. Hofener and W. Klopper, Theor. Chem. Acc. 117, 587 (2007).
+        Ce-Lu : J. Chmela and M. E. Harding, Mol. Phys. (2018).
+
+----- AuxJK basis set information -----
+Your calculation utilizes the auxiliary basis: def2/JK
+   H-Ba, Hf-Rn: F. Weigend, J. Comput. Chem. 29, 167 (2008).
+
+================================================================================
+                                        WARNINGS
+                       Please study these warnings very carefully!
+================================================================================
+
+WARNING: Old DensityContainer found on disk!
+         Will remove this file - 
+         If you want to keep old densities, please start your calculation with a different basename. 
+
+
+WARNING: your system is open-shell and RHF/RKS was chosen
+  ===> : WILL SWITCH to UHF/UKS
+
+
+WARNING: No MP2 level density has been requested!
+         To calculate MP2 level properties use
+         %mp2 Density relaxed end
+         or
+         %mp2 Density unrelaxed end
+
+WARNING: Post HF methods need fully converged wavefunctions
+  ===> : Setting SCFConvForced true
+         You can overwrite this default with %scf ConvForced false 
+
+
+WARNING: MDCI localization with Augmented Hessian Foster-Boys
+  ===> : Switching off randomization!
+
+WARNING: UseCISUpdate is  only available for RHF calculations...
+  ===> : Setting UseCISUpdate = false 
+
+================================================================================
+                                       INPUT FILE
+================================================================================
+NAME = /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.inp
+|  1> ! RI-MP2 def2-SVP def2/JK RIJK def2-SVP/C
+|  2> %maxcore 8000
+|  3> %method
+|  4> FrozenCore FC_ELECTRONS
+|  5> end
+|  6> 
+|  7> %mdci
+|  8>    TCutPairs 1e-6
+|  9>    printlevel 4
+| 10> end
+| 11> 
+| 12> %loc
+| 13> LocMet AHFB
+| 14> OCC true
+| 15> end
+| 16> 
+| 17> *xyz 0 3
+| 18> C 0.0 0.0 0.0
+| 19> *
+| 20> 
+| 21>                          ****END OF INPUT****
+================================================================================
+
+                       ****************************
+                       * Single Point Calculation *
+                       ****************************
+
+---------------------------------
+CARTESIAN COORDINATES (ANGSTROEM)
+---------------------------------
+  C      0.000000    0.000000    0.000000
+
+----------------------------
+CARTESIAN COORDINATES (A.U.)
+----------------------------
+  NO LB      ZA    FRAG     MASS         X           Y           Z
+   0 C     6.0000    0    12.011    0.000000    0.000000    0.000000
+
+--------------------------------
+INTERNAL COORDINATES (ANGSTROEM)
+--------------------------------
+ C      0   0   0     0.000000000000     0.00000000     0.00000000
+
+---------------------------
+INTERNAL COORDINATES (A.U.)
+---------------------------
+ C      0   0   0     0.000000000000     0.00000000     0.00000000
+
+---------------------
+BASIS SET INFORMATION
+---------------------
+There are 1 groups of distinct atoms
+
+ Group   1 Type C   : 7s4p1d contracted to 3s2p1d pattern {511/31/1}
+
+Atom   0C    basis set group =>   1
+---------------------------------
+AUXILIARY/C BASIS SET INFORMATION
+---------------------------------
+There are 1 groups of distinct atoms
+
+ Group   1 Type C   : 8s6p5d3f contracted to 6s5p4d1f pattern {311111/21111/2111/3}
+
+Atom   0C    basis set group =>   1
+----------------------------------
+AUXILIARY/JK BASIS SET INFORMATION
+----------------------------------
+There are 1 groups of distinct atoms
+
+ Group   1 Type C   : 14s10p6d2f1g contracted to 10s8p5d1f1g pattern {5111111111/31111111/21111/2/1}
+
+Atom   0C    basis set group =>   1
+
+Checking for AutoStart:
+The File: /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.gbw exists
+Trying to determine its content:
+     ... Fine, the file contains calculation information
+     ... Fine, the calculation information was read
+     ... Fine, the file contains a basis set
+     ... Fine, the basis set was read
+     ... Fine, the file contains a geometry
+     ... Fine, the geometry was read
+     ... Fine, the file contains a set of orbitals
+     ... Fine, the orbitals can be read
+     => possible old guess file was deleted
+     => GBW file was renamed to GES file
+     => GES file is set as startup file
+     => Guess is set to MORead
+     ... now leaving AutoStart
+
+------------------------------------------------------------------------------
+                             ORCA STARTUP CALCULATIONS
+                           -- RI-GTO INTEGRALS CHOSEN --
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+                   ___                                                        
+                  /   \      - P O W E R E D   B Y -                         
+                 /     \                                                     
+                 |  |  |   _    _      __       _____    __    __             
+                 |  |  |  | |  | |    /  \     |  _  \  |  |  /  |          
+                  \  \/   | |  | |   /    \    | | | |  |  | /  /          
+                 / \  \   | |__| |  /  /\  \   | |_| |  |  |/  /          
+                |  |  |   |  __  | /  /__\  \  |    /   |      \           
+                |  |  |   | |  | | |   __   |  |    \   |  |\   \          
+                \     /   | |  | | |  |  |  |  | |\  \  |  | \   \       
+                 \___/    |_|  |_| |__|  |__|  |_| \__\ |__|  \__/        
+                                                                              
+                      - O R C A' S   B I G   F R I E N D -                    
+                                      &                                       
+                       - I N T E G R A L  F E E D E R -                       
+                                                                              
+ v1 FN, 2020, v2 2021, v3 2022-2024                                           
+------------------------------------------------------------------------------
+
+
+----------------------
+SHARK INTEGRAL PACKAGE
+----------------------
+
+Number of atoms                             ...      1
+Number of basis functions                   ...     14
+Number of shells                            ...      6
+Maximum angular momentum                    ...      2
+Integral batch strategy                     ... SHARK/LIBINT Hybrid
+RI-J (if used) integral strategy            ... SPLIT-RIJ (Revised 2003 algorithm where possible)
+Printlevel                                  ...      1
+Contraction scheme used                     ... SEGMENTED contraction
+Prescreening option                         ... SCHWARTZ
+   Thresh                                   ... 1.000e-10
+   Tcut                                     ... 1.000e-11
+   Tpresel                                  ... 1.000e-11 
+Coulomb Range Separation                    ... NOT USED
+Exchange Range Separation                   ... NOT USED
+Multipole approximations                    ... NOT USED
+Finite Nucleus Model                        ... NOT USED
+CABS basis                                  ... NOT available
+Auxiliary Coulomb fitting basis             ... NOT available
+Auxiliary J/K fitting basis                 ... AVAILABLE
+   # of basis functions in Aux-JK           ...     75
+   # of shells in Aux-JK                    ...     25
+   Maximum angular momentum in Aux-JK       ...      4
+Auxiliary Correlation fitting basis         ... AVAILABLE
+   # of basis functions in Aux-C            ...     48
+   # of shells in Aux-C                     ...     16
+   Maximum angular momentum in Aux-C        ...      3
+Auxiliary 'external' fitting basis          ... NOT available
+
+Checking pre-screening integrals            ... done (  0.0 sec) Dimension = 6
+Check shell pair data                       ... done (  0.0 sec)
+Shell pair information
+Shell pair cut-off parameter TPreSel        ...   1.0e-11
+Total number of shell pairs                 ...        21
+Shell pairs after pre-screening             ...        21
+Total number of primitive shell pairs       ...        91
+Primitive shell pairs kept                  ...        91
+          la=0 lb=0:      6 shell pairs
+          la=1 lb=0:      6 shell pairs
+          la=1 lb=1:      3 shell pairs
+          la=2 lb=0:      3 shell pairs
+          la=2 lb=1:      2 shell pairs
+          la=2 lb=2:      1 shell pairs
+
+Calculating one electron integrals          ... done (  0.0 sec)
+Calculating RI/JK V-Matrix + Cholesky decomp... done (  0.0 sec)
+Calculating RI/C V-Matrix + Cholesky decomp.... done (  0.0 sec)
+Calculating Nuclear repulsion               ... done (  0.0 sec) ENN=      0.000000000000 Eh
+
+Diagonalization of the overlap matrix:
+Smallest eigenvalue                        ... 1.813e-01
+Time for diagonalization                   ...    0.000 sec
+Threshold for overlap eigenvalues          ... 1.000e-07
+Number of eigenvalues below threshold      ... 0
+Time for construction of square roots      ...    0.000 sec
+Total time needed                          ...    0.000 sec
+
+-------------------
+DFT GRID GENERATION
+-------------------
+
+General Integration Accuracy     IntAcc      ... 4.388
+Radial Grid Type                 RadialGrid  ... OptM3 with GC (2021)
+Angular Grid (max. ang.)         AngularGrid ... 4 (Lebedev-302)
+Angular grid pruning method      GridPruning ... 4 (adaptive)
+Weight generation scheme         WeightScheme... mBecke (2022)
+Basis function cutoff            BFCut       ... 1.0000e-10
+Integration weight cutoff        WCut        ... 1.0000e-14
+Partially contracted basis set               ... off
+Rotationally invariant grid construction     ... off
+Angular grids for H and He will be reduced by one unit
+
+Total number of grid points                  ...     6136
+Total number of batches                      ...       96
+Average number of points per batch           ...       63
+Average number of grid points per atom       ...     6136
+Initializing property integral containers    ... done (  0.0 sec)
+
+SHARK setup successfully completed in   0.0 seconds
+
+Maximum memory used throughout the entire STARTUP-calculation: 8.7 MB
+-------------------------------------------------------------------------------
+                                 ORCA GUESS
+                   Start orbitals & Density for SCF / CASSCF
+-------------------------------------------------------------------------------
+
+------------
+SCF SETTINGS
+------------
+Hamiltonian:
+ Ab initio Hamiltonian  Method          .... Hartree-Fock(GTOs)
+ RI-approximation to the Coulomb term is turned on
+   Number of AuxJK basis functions      .... 75
+   RI-JK (J+K treated both via RI)      .... on
+
+
+General Settings:
+ Integral files         IntName         .... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp
+ Hartree-Fock type      HFTyp           .... UHF
+ Total Charge           Charge          ....    0
+ Multiplicity           Mult            ....    3
+ Number of Electrons    NEL             ....    6
+ Basis Dimension        Dim             ....   14
+ Nuclear Repulsion      ENuc            ....      0.0000000000 Eh
+
+Convergence Acceleration:
+ AO-DIIS                CNVDIIS         .... on
+   Start iteration      DIISMaxIt       ....    12
+   Startup error        DIISStart       ....  0.200000
+   # of expansion vecs  DIISMaxEq       ....     5
+   Bias factor          DIISBfac        ....   1.050
+   Max. coefficient     DIISMaxC        ....  10.000
+ MO-DIIS                CNVKDIIS        .... off
+ Trust-Rad. Augm. Hess. CNVTRAH         .... auto
+   Auto Start mean grad. ratio tolernc. ....  1.125000
+   Auto Start start iteration           ....     1
+   Auto Start num. interpolation iter.  ....    10
+   Max. Number of Micro iterations      ....    24
+   Max. Number of Macro iterations      .... Maxiter - #DIIS iter
+   Number of Davidson start vectors     ....     2
+   Converg. threshold    (grad. norm)   ....   5.000e-05
+   Grad. Scal. Fac. for Micro threshold ....   0.100
+   Minimum threshold for Micro iter.    ....   1.000e-02
+   NR start threshold (gradient norm)   ....   1.000e-04
+   Initial trust radius                 ....   0.400
+   Minimum AH scaling param. (alpha)    ....   1.000
+   Maximum AH scaling param. (alpha)    .... 1000.000
+   Quad. conv. algorithm                .... NR
+   White noise on init. David. guess    .... on
+   Maximum white noise                  ....   0.010
+   Pseudo random numbers                .... off
+   Inactive MOs                         .... canonical
+   Orbital update algorithm             .... Taylor
+   Preconditioner                       .... Diag
+   Full preconditioner red. dimension   ....   250
+ SOSCF                  CNVSOSCF        .... on
+   Start iteration      SOSCFMaxIt      ....   150
+   Startup grad/error   SOSCFStart      ....  0.003300
+   Hessian update       SOSCFHessUp     .... L-BFGS
+ Level Shifting         CNVShift        .... on
+   Level shift para.    LevelShift      ....    0.2500
+   Turn off err/grad.   ShiftErr        ....    0.0010
+ Zerner damping         CNVZerner       .... off
+ Static damping         CNVDamp         .... on
+   Fraction old density DampFac         ....    0.7000
+   Max. Damping (<1)    DampMax         ....    0.9800
+   Min. Damping (>=0)   DampMin         ....    0.0000
+   Turn off err/grad.   DampErr         ....    0.1000
+
+SCF Procedure:
+ Maximum # iterations   MaxIter         ....   125
+ SCF integral mode      SCFMode         .... Direct
+   Integral package                     .... SHARK and LIBINT hybrid scheme
+ Reset frequency        DirectResetFreq ....    20
+ Integral Threshold     Thresh          ....  1.000e-10 Eh
+ Primitive CutOff       TCut            ....  1.000e-11 Eh
+
+Convergence Tolerance:
+ Convergence Check Mode ConvCheckMode   .... Total+1el-Energy
+ Convergence forced     ConvForced      .... 1
+ Energy Change          TolE            ....  1.000e-06 Eh
+ 1-El. energy change                    ....  1.000e-03 Eh
+ Orbital Gradient       TolG            ....  5.000e-05
+ Orbital Rotation angle TolX            ....  5.000e-05
+ DIIS Error             TolErr          ....  1.000e-06
+
+---------------------
+INITIAL GUESS: MOREAD
+---------------------
+Guess MOs are being read from file: /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.ges
+Input Geometry matches current geometry (good)
+Input basis set matches current basis set (good)
+MOs were renormalized
+MOs were reorthogonalized (Cholesky)
+                      ------------------
+                      INITIAL GUESS DONE (   0.0 sec)
+                      ------------------
+             **** ENERGY FILE WAS UPDATED (/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.en.tmp) ****
+Finished Guess after   0.0 sec
+Maximum memory used throughout the entire GUESS-calculation: 5.3 MB
+
+-------------------------------------------------------------------------------------------
+                                      ORCA LEAN-SCF
+                              memory conserving SCF solver
+-------------------------------------------------------------------------------------------
+
+----------------------------------------D-I-I-S--------------------------------------------
+Iteration    Energy (Eh)           Delta-E    RMSDP     MaxDP     DIISErr   Damp  Time(sec)
+-------------------------------------------------------------------------------------------
+                              *** Initializing SOSCF ***
+---------------------------------------S-O-S-C-F--------------------------------------
+Iteration    Energy (Eh)           Delta-E    RMSDP     MaxDP     MaxGrad    Time(sec)
+--------------------------------------------------------------------------------------
+    1    -37.6452234569006379     0.00e+00  6.03e-07  6.24e-06  6.88e-07     0.0
+    2    -37.6452234569356960    -3.51e-11  3.05e-07  3.31e-06  1.90e-06     0.0
+                  *** Gradient check signals convergence ***
+
+               *****************************************************
+               *                     SUCCESS                       *
+               *           SCF CONVERGED AFTER   2 CYCLES          *
+               *****************************************************
+
+             **** ENERGY FILE WAS UPDATED (/home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.en.tmp) ****
+
+----------------
+TOTAL SCF ENERGY
+----------------
+
+Total Energy       :        -37.64522345693570 Eh           -1024.37861 eV
+
+Components:
+Nuclear Repulsion  :          0.00000000000000 Eh               0.00000 eV
+Electronic Energy  :        -37.64522345693570 Eh           -1024.37861 eV
+One Electron Energy:        -50.38648831338667 Eh           -1371.08605 eV
+Two Electron Energy:         12.74126485645098 Eh             346.70744 eV
+
+Virial components:
+Potential Energy   :        -75.29359770976762 Eh           -2048.84295 eV
+Kinetic Energy     :         37.64837425283192 Eh            1024.46435 eV
+Virial Ratio       :          1.99991630990823
+
+---------------
+SCF CONVERGENCE
+---------------
+
+  Last Energy change         ...    3.5058e-11  Tolerance :   1.0000e-06
+  Last MAX-Density change    ...    3.3128e-06  Tolerance :   1.0000e-05
+  Last RMS-Density change    ...    3.0530e-07  Tolerance :   1.0000e-06
+  Last DIIS Error            ...    2.3603e-06  Tolerance :   1.0000e-06
+  Last Orbital Gradient      ...    1.8994e-06  Tolerance :   5.0000e-05
+  Last Orbital Rotation      ...    1.4551e-06  Tolerance :   5.0000e-05
+
+
+----------------------
+UHF SPIN CONTAMINATION
+----------------------
+
+Expectation value of <S**2>     :     2.006579
+Ideal value S*(S+1) for S=1.0   :     2.000000
+Deviation                       :     0.006579
+
+----------------
+ORBITAL ENERGIES
+----------------
+                 SPIN UP ORBITALS
+  NO   OCC          E(Eh)            E(eV) 
+   0   1.0000     -11.344070      -308.6878 
+   1   1.0000      -0.814293       -22.1580 
+   2   1.0000      -0.440425       -11.9846 
+   3   1.0000      -0.440425       -11.9846 
+   4   0.0000       0.038805         1.0559 
+   5   0.0000       0.491089        13.3632 
+   6   0.0000       0.634660        17.2700 
+   7   0.0000       0.634660        17.2700 
+   8   0.0000       0.717850        19.5337 
+   9   0.0000       1.893289        51.5190 
+  10   0.0000       1.893289        51.5190 
+  11   0.0000       1.924366        52.3647 
+  12   0.0000       1.924366        52.3647 
+  13   0.0000       1.936342        52.6906 
+
+                 SPIN DOWN ORBITALS
+  NO   OCC          E(Eh)            E(eV) 
+   0   1.0000     -11.295223      -307.3586 
+   1   1.0000      -0.569524       -15.4975 
+   2   0.0000       0.081082         2.2063 
+   3   0.0000       0.137495         3.7414 
+   4   0.0000       0.137495         3.7414 
+   5   0.0000       0.556476        15.1425 
+   6   0.0000       0.750031        20.4094 
+   7   0.0000       0.802502        21.8372 
+   8   0.0000       0.802502        21.8372 
+   9   0.0000       2.010879        54.7188 
+  10   0.0000       2.027226        55.1636 
+  11   0.0000       2.027226        55.1636 
+  12   0.0000       2.080952        56.6256 
+*Only the first 10 virtual orbitals were printed.
+
+                    ********************************
+                    * MULLIKEN POPULATION ANALYSIS *
+                    ********************************
+
+--------------------------------------------
+MULLIKEN ATOMIC CHARGES AND SPIN POPULATIONS
+--------------------------------------------
+   0 C :   -0.000000    2.000000
+Sum of atomic charges         :   -0.0000000
+Sum of atomic spin populations:    2.0000000
+
+-----------------------------------------------------
+MULLIKEN REDUCED ORBITAL CHARGES AND SPIN POPULATIONS
+-----------------------------------------------------
+CHARGE
+  0 C s       :     3.998692  s :     3.998692
+      pz      :     0.964604  p :     2.000000
+      px      :     0.960121
+      py      :     0.075275
+      dz2     :     0.000261  d :     0.001308
+      dxz     :     0.000006
+      dyz     :     0.000128
+      dx2y2   :     0.000768
+      dxy     :     0.000145
+
+
+SPIN
+  0 C s       :    -0.000120  s :    -0.000120
+      pz      :     0.964604  p :     2.000000
+      px      :     0.960121
+      py      :     0.075275
+      dz2     :     0.000024  d :     0.000120
+      dxz     :     0.000001
+      dyz     :     0.000012
+      dx2y2   :     0.000070
+      dxy     :     0.000013
+
+
+
+                     *******************************
+                     * LOEWDIN POPULATION ANALYSIS *
+                     *******************************
+
+-------------------------------------------
+LOEWDIN ATOMIC CHARGES AND SPIN POPULATIONS
+-------------------------------------------
+   0 C :   -0.000000    2.000000
+
+----------------------------------------------------
+LOEWDIN REDUCED ORBITAL CHARGES AND SPIN POPULATIONS
+----------------------------------------------------
+CHARGE
+  0 C s       :     3.998692  s :     3.998692
+      pz      :     0.964604  p :     2.000000
+      px      :     0.960121
+      py      :     0.075275
+      dz2     :     0.000261  d :     0.001308
+      dxz     :     0.000006
+      dyz     :     0.000128
+      dx2y2   :     0.000768
+      dxy     :     0.000145
+
+
+SPIN
+  0 C s       :    -0.000120  s :    -0.000120
+      pz      :     0.964604  p :     2.000000
+      px      :     0.960121
+      py      :     0.075275
+      dz2     :     0.000024  d :     0.000120
+      dxz     :     0.000001
+      dyz     :     0.000012
+      dx2y2   :     0.000070
+      dxy     :     0.000013
+
+
+
+                      *****************************
+                      * MAYER POPULATION ANALYSIS *
+                      *****************************
+
+  NA   - Mulliken gross atomic population
+  ZA   - Total nuclear charge
+  QA   - Mulliken gross atomic charge
+  VA   - Mayer's total valence
+  BVA  - Mayer's bonded valence
+  FA   - Mayer's free valence
+
+  ATOM       NA         ZA         QA         VA         BVA        FA
+  0 C      6.0000     6.0000    -0.0000     2.0132     0.0000     2.0132
+
+  Mayer bond orders larger than 0.100000
+  => no bond orders to print
+
+-------
+TIMINGS
+-------
+
+Total SCF time: 0 days 0 hours 0 min 0 sec 
+
+Total time                  ....       0.024 sec
+Sum of individual times     ....       0.022 sec  ( 91.5%)
+
+SCF preparation             ....       0.018 sec  ( 76.5%)
+Fock matrix formation       ....       0.002 sec  (  7.1%)
+  Startup                   ....       0.000 sec  (  6.7% of F)
+  RI-JK                     ....       0.001 sec  ( 68.3% of F)
+Diagonalization             ....       0.000 sec  (  0.0%)
+Density matrix formation    ....       0.000 sec  (  0.8%)
+Total Energy calculation    ....       0.000 sec  (  0.2%)
+Population analysis         ....       0.001 sec  (  2.7%)
+Orbital Transformation      ....       0.000 sec  (  1.4%)
+Orbital Orthonormalization  ....       0.000 sec  (  0.0%)
+DIIS solution               ....       0.000 sec  (  0.7%)
+SOSCF solution              ....       0.000 sec  (  1.8%)
+Finished LeanSCF after   0.0 sec
+
+Maximum memory used throughout the entire LEANSCF-calculation: 4.4 MB
+
+------------------------------------------------------------------------------
+                         ORCA PROPERTY INTEGRAL CALCULATIONS
+------------------------------------------------------------------------------
+
+GBWName                                   ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.gbw
+Number of atoms                           ...      1
+Number of basis functions                 ...     14
+Max core memory                           ...   8000 MB
+
+Dipole integrals                          ... YES
+Quadrupole integrals                      ...  NO
+Linear momentum integrals                 ... YES
+Angular momentum integrals                ... YES
+Higher moments length integrals           ...  NO
+Higher moments velocity integrals         ...  NO
+Kinetic energy integrals                  ...  NO
+GIAO right hand sides                     ...  NO
+GIAO dipole derivative integrals          ...  NO
+SOC integrals                             ...  NO
+EPR diamagnetic integrals (GIAO)          ...  NO
+EPR gauge integrals                       ...  NO
+Field gradient integrals                  ...  NO (   0 nuclei)
+Spin-dipole/Fermi contact integrals       ...  NO (   0 nuclei)
+Contact density integrals                 ...  NO (   0 nuclei)
+Nucleus-orbit integrals                   ...  NO (   0 nuclei)
+Geometric perturbations                   ...  NO (   1 nuclei)
+
+Choice of electric origin   ... Center of mass
+Position of electric origin ... (  0.0000,  0.0000,  0.0000) 
+Choice of magnetic origin   ... GIAO
+Position of magnetic origin ... (  0.0000,  0.0000,  0.0000) 
+
+Calculating integrals                     ... Electric Dipole (Length)     done (  0.0 sec)
+Calculating integrals                     ... Linear Momentum              done (  0.0 sec)
+Calculating integrals                     ... Angular Momentum  (ElOri)    done (  0.0 sec)
+
+Property integrals calculated in   0.0 sec
+
+Maximum memory used throughout the entire PROPINT-calculation: 5.4 MB
+------------------------------------------------------------------------------
+                           ORCA ORBITAL LOCALIZATION
+------------------------------------------------------------------------------
+
+Input orbitals are from                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.gbw
+Output orbitals are to                   ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+Max. number of iterations                ... 128
+Localizations seeded randomly            ... on
+Convergence tolerance                    ... 1.000e-06
+Threshold for strong local MOs           ... 9.500e-01
+Threshold for bond MOs                   ... 8.500e-01
+Operator                                 ... 0
+Orbital range for localization           ... 1 to 3
+Localization criterion                   ... FOSTER-BOYS (AUGMENTED HESSIAN)
+Doing the dipole integrals     ... o.k.
+Initial value of the localization sum :     0.000000
+ITERATION   0 : L=    2.2754160883 DL=  2.28e+00 (AVERGE_DL)=    0.8709029966 
+ITERATION   1 : L=    2.3109694647 DL=  3.56e-02 (AVERGE_DL)=    0.1088628746 
+ITERATION   2 : L=    2.3115249862 DL=  5.56e-04 (AVERGE_DL)=    0.0136078593 
+ITERATION   3 : L=    2.3115336662 DL=  8.68e-06 (AVERGE_DL)=    0.0017009824 
+ITERATION   4 : L=    2.3115338018 DL=  1.36e-07 (AVERGE_DL)=    0.0002126228 
+LOCALIZATION SUM CONVERGED
+
+------------------------------------------------------
+AUGMENTED HESSIAN OPTIMIZATION OF FOSTER-BOYS ORBITALS
+------------------------------------------------------
+
+Spin operator:           0
+Orbital window:          1 to 3
+Number of iterations:    128
+Gradient tolerance:      1.000e-06
+Number of pairs:         3
+Davidson threshold:      2000
+Diagonalization method:  LAPACK
+Iter:    0   L: 2.3115338018   Grad. norm: 1.995210e-04
+   *** Likely close to a maximum now. ***
+       Augmented Hessian eigenvalues:  4.31e-09  1.08e-09 -9.25e+00 -9.25e+00
+Iter:    1   L: 2.3115338040   Grad. norm: 4.567371e-09
+LOCALIZATION HAS CONVERGED.
+
+Eigenvalues of the Hessian:
+  0  1.230e-15
+  1 -9.246e+00
+  2 -9.246e+00
+
+
+--------------------------------------------------------------------------------
+                    LOCALIZED MOLECULAR ORBITAL COMPOSITIONS
+--------------------------------------------------------------------------------
+
+The Mulliken populations for each LMO on each atom are computed
+The LMO`s will be ordered according to atom index and type
+  (A) Strongly localized MO`s have populations of >=0.950 on one atom
+  (B) Two center bond orbitals have populations of >=0.850 on two atoms
+  (C) Other MO`s are considered to be `delocalized`
+
+FOUND  -   3 strongly local MO`s
+       -   0 two center bond MO`s
+       -   0 significantly delocalized MO`s
+
+Rather strongly localized orbitals:
+MO   3:   0C  -   1.000000
+MO   2:   0C  -   1.000000
+MO   1:   0C  -   1.000000
+Localized MO's were stored in: /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+------------------------------------------------------------------------------
+                           ORCA ORBITAL LOCALIZATION
+------------------------------------------------------------------------------
+
+Input orbitals are from                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+Output orbitals are to                   ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+Max. number of iterations                ... 128
+Localizations seeded randomly            ... on
+Convergence tolerance                    ... 1.000e-06
+Threshold for strong local MOs           ... 9.500e-01
+Threshold for bond MOs                   ... 8.500e-01
+Operator                                 ... 1
+Orbital range for localization           ... 1 to 1
+Localization criterion                   ... FOSTER-BOYS (AUGMENTED HESSIAN)
+Doing the dipole integrals     ... o.k.
+
+ORCA_LOC: ONLY ONE ORBITAL - SKIPPING LOCALIZATION
+
+
+--------------------------------------------------------------------------------
+                    LOCALIZED MOLECULAR ORBITAL COMPOSITIONS
+--------------------------------------------------------------------------------
+
+The Mulliken populations for each LMO on each atom are computed
+The LMO`s will be ordered according to atom index and type
+  (A) Strongly localized MO`s have populations of >=0.950 on one atom
+  (B) Two center bond orbitals have populations of >=0.850 on two atoms
+  (C) Other MO`s are considered to be `delocalized`
+
+FOUND  -   1 strongly local MO`s
+       -   0 two center bond MO`s
+       -   0 significantly delocalized MO`s
+
+Rather strongly localized orbitals:
+MO   1:   0C  -   1.000000
+Localized MO's were stored in: /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+
+------------------------------------------------------------------------------
+                                ORCA  MP2 
+------------------------------------------------------------------------------
+
+Freezing NCore=2 chemical core electrons
+
+-------------
+RI-MP2 ENERGY
+-------------
+Dimension of the orbital basis            ...   14
+Dimension of the AuxC basis               ...   48
+Memory devoted to MP2                     ... 8000 MB   
+Data format for matrix containers         ... DOUBLE
+Compression type for matrix containers    ... UNCOMPRESSED
+
+-----------------------
+SHARK RI TRANSFORMATION
+-----------------------
+
+Number of basis functions                ...     14
+Number of aux functions                  ...     48
+Number of operators                      ...      2
+Generation of IJK                        ... NO
+Generation of IAK                        ... YES
+Generation of ABK                        ... NO
+Orbital Range Operator  0:    1-   3 to    4-  13
+
+Orbital Range Operator  1:    1-   1 to    2-  13
+
+Aux basis identifier                     ...   AUXC
+Contraction scheme used                  ... SEGMENTED
+Do orthogonalization                     ... YES
+All operator combinations                ... NO
+Transpose (ia|K)                         ... NO
+Integral generator used                  ... LIBINT
+Starting integral generation + trafo... 
+Half trafo (segmented) done. Total time =  0.0 sec. integrals=  0.0 sec trafo=  0.0 sec
+Integral generation and half transformation done (  0.0 sec)
+
+Reading or making V^(-1/2)          ... done (  0.0 sec)
+Sorting IAK integrals               ... done (  0.0 sec)
+Sorting IAK integrals               ... done (  0.0 sec)
+
+SHARK RI integral transformation done. Total time =  0.0 sec.
+
+Opening buffers                              ... done
+
+Starting loop over batches of integrals:
+
+Operator 0  - window                       ... (  1-  3)x(  4- 13)
+Operator 0  - Memory available             ...  8000 MB
+Operator 0  - Memory needed per MO         ...   0.0 MB
+Operator 0  - Number of orbitals per batch ... 3
+Operator 0  - Number of batches            ... 1
+
+OPERATOR  0   PASS   0:  MOs     1 ...    3
+  Reading integrals       ... ok
+  Internal MO   3
+
+Operator 1  - window                       ... (  1-  1)x(  2- 13)
+Operator 1  - Memory available             ...  8000 MB
+Operator 1  - Memory needed per MO         ...   0.0 MB
+Operator 1  - Number of orbitals per batch ... 1
+Operator 1  - Number of batches            ... 1
+
+OPERATOR  1   PASS   0:  MOs     1 ...    1
+  Reading integrals       ... ok
+Time spent in pair loops =     0.000 sec
+Deleting buffers (Ka|jb) ...done
+
+Correlation energy components}
+ E2 for alpha/alpha pairs :     -0.008995942 Eh
+ E2 for beta/beta   pairs :      0.000000000 Eh
+ E2 for alpha/beta  pairs :     -0.041040363 Eh
+
+
+-----------------------------------------------
+ RI-MP2 CORRELATION ENERGY:     -0.050036305 Eh
+-----------------------------------------------
+
+
+-------
+TIMINGS
+-------
+
+Total time                :    0.029 sec
+Integral trafo            :    0.028 sec ( 98.5%)
+
+
+---------------------------------------
+MP2 TOTAL ENERGY:      -37.695259762 Eh
+---------------------------------------
+
+Maximum memory used throughout the entire MP2-calculation: 10.5 MB
+
+
+--------------------------------------------------------------------------------
+                             ORCA-MATRIX DRIVEN CI
+--------------------------------------------------------------------------------
+
+--------------------------------
+AUTOMATIC CHOICE OF INCORE LEVEL
+--------------------------------
+
+Memory available                           ...   4000.00 MB
+Memory needed for S+T                      ...      0.01 MB
+Memory needed for J+K                      ...      0.03 MB
+Memory needed for DIIS                     ...      0.13 MB
+Memory needed for 3-ext                    ...      0.02 MB
+Memory needed for 4-ext                    ...      0.04 MB
+Memory needed for triples                  ...      0.00 MB
+ -> Final InCoreLevel    ... 5
+
+Wavefunction type
+-----------------
+Correlation treatment                      ...     QCISD     
+Single excitations                         ... ON
+Orbital optimization                       ... OFF
+Calculation of Z vector                    ... OFF
+Calculation of Brueckner orbitals          ... OFF
+Perturbative triple excitations            ... OFF
+Calculation of F12 correction              ... OFF
+Frozen core treatment                      ... chemical core (2 el)
+Reference Wavefunction                     ... UHF
+  Alpha-MOs occ    :     1 ...    3 (  3 MO's/  3 electrons)
+  Beta-MOs occ     :     1 ...    1 (  1 MO's/  1 electrons)
+  Alpha-MOs virt   :     4 ...   13 ( 10 MO's              )
+  Beta-MOs virt    :     2 ...   13 ( 12 MO's              )
+Number of AO's                             ...     14
+Number of electrons                        ...      6
+Number of correlated electrons             ...      4
+
+Algorithmic settings
+--------------------
+Integral transformation                    ... All integrals via the RI transformation
+K(C) Formation                             ... RI-INTEGRALS
+Maximum number of iterations               ...        50
+Convergence tolerance (max. residuum)      ... 2.500e-05
+Level shift for amplitude update           ... 2.000e-01
+Maximum number of DIIS vectors             ...         7
+DIIS turned on at iteration                ...         0
+Damping before turning on DIIS             ...     0.500
+Damping after turning on DIIS              ...     0.000
+Pair specific amplitude update             ... OFF
+Natural orbital iterations                 ... OFF
+Perturbative natural orbital generation    ... OFF
+Printlevel                                 ... 4
+
+RIJK will be used for the Singles Fock matrix.
+
+Memory handling:
+----------------
+Maximum memory for working arrays          ...   4000 MB
+Data storage in matrix containers          ... UNCOMPRESSED
+Data type for integral storage             ... DOUBLE
+In-Core Storage of quantities:
+   Amplitudes+Sigma Vector      ... YES
+   J+K operators                ... YES
+   DIIS vectors                 ... YES
+   3-external integrals         ... YES
+   4-external integrals         ... YES
+
+
+Initializing the integral package          ... done
+Localizing the valence orbitals
+Localizing the valence orbitals
+------------------------------------------------------------------------------
+                           ORCA ORBITAL LOCALIZATION
+------------------------------------------------------------------------------
+
+Input orbitals are from                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.gbw
+Output orbitals are to                   ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+Max. number of iterations                ... 128
+Localizations seeded randomly            ... off
+Convergence tolerance                    ... 1.000e-06
+Threshold for strong local MOs           ... 9.500e-01
+Threshold for bond MOs                   ... 8.500e-01
+Operator                                 ... 0
+Orbital range for localization           ... 1 to 3
+Localization criterion                   ... FOSTER-BOYS (AUGMENTED HESSIAN)
+Doing the dipole integrals     ... o.k.
+Initial value of the localization sum :     0.000000
+ITERATION   0 : L=    2.2754160883 DL=  2.28e+00 (AVERGE_DL)=    0.8709029966 
+ITERATION   1 : L=    2.3109694647 DL=  3.56e-02 (AVERGE_DL)=    0.1088628746 
+ITERATION   2 : L=    2.3115249862 DL=  5.56e-04 (AVERGE_DL)=    0.0136078593 
+ITERATION   3 : L=    2.3115336662 DL=  8.68e-06 (AVERGE_DL)=    0.0017009824 
+ITERATION   4 : L=    2.3115338018 DL=  1.36e-07 (AVERGE_DL)=    0.0002126228 
+LOCALIZATION SUM CONVERGED
+
+------------------------------------------------------
+AUGMENTED HESSIAN OPTIMIZATION OF FOSTER-BOYS ORBITALS
+------------------------------------------------------
+
+Spin operator:           0
+Orbital window:          1 to 3
+Number of iterations:    128
+Gradient tolerance:      1.000e-06
+Number of pairs:         3
+Davidson threshold:      2000
+Diagonalization method:  LAPACK
+Iter:    0   L: 2.3115338018   Grad. norm: 1.995210e-04
+   *** Likely close to a maximum now. ***
+       Augmented Hessian eigenvalues:  4.31e-09  1.08e-09 -9.25e+00 -9.25e+00
+Iter:    1   L: 2.3115338040   Grad. norm: 4.567371e-09
+LOCALIZATION HAS CONVERGED.
+
+Eigenvalues of the Hessian:
+  0  1.230e-15
+  1 -9.246e+00
+  2 -9.246e+00
+
+
+--------------------------------------------------------------------------------
+                    LOCALIZED MOLECULAR ORBITAL COMPOSITIONS
+--------------------------------------------------------------------------------
+
+The Mulliken populations for each LMO on each atom are computed
+The LMO`s will be ordered according to atom index and type
+  (A) Strongly localized MO`s have populations of >=0.950 on one atom
+  (B) Two center bond orbitals have populations of >=0.850 on two atoms
+  (C) Other MO`s are considered to be `delocalized`
+
+FOUND  -   3 strongly local MO`s
+       -   0 two center bond MO`s
+       -   0 significantly delocalized MO`s
+
+Rather strongly localized orbitals:
+MO   3:   0C  -   1.000000
+MO   2:   0C  -   1.000000
+MO   1:   0C  -   1.000000
+Localized MO's were stored in: /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+
+------------------------------------------------------------------------------
+                           ORCA ORBITAL LOCALIZATION
+------------------------------------------------------------------------------
+
+Input orbitals are from                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+Output orbitals are to                   ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+Max. number of iterations                ... 128
+Localizations seeded randomly            ... off
+Convergence tolerance                    ... 1.000e-06
+Threshold for strong local MOs           ... 9.500e-01
+Threshold for bond MOs                   ... 8.500e-01
+Operator                                 ... 1
+Orbital range for localization           ... 1 to 1
+Localization criterion                   ... FOSTER-BOYS (AUGMENTED HESSIAN)
+Doing the dipole integrals     ... o.k.
+
+ORCA_LOC: ONLY ONE ORBITAL - SKIPPING LOCALIZATION
+
+
+--------------------------------------------------------------------------------
+                    LOCALIZED MOLECULAR ORBITAL COMPOSITIONS
+--------------------------------------------------------------------------------
+
+The Mulliken populations for each LMO on each atom are computed
+The LMO`s will be ordered according to atom index and type
+  (A) Strongly localized MO`s have populations of >=0.950 on one atom
+  (B) Two center bond orbitals have populations of >=0.850 on two atoms
+  (C) Other MO`s are considered to be `delocalized`
+
+FOUND  -   1 strongly local MO`s
+       -   0 two center bond MO`s
+       -   0 significantly delocalized MO`s
+
+Rather strongly localized orbitals:
+MO   1:   0C  -   1.000000
+Localized MO's were stored in: /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+
+Localizing the core orbitals
+------------------------------------------------------------------------------
+                           ORCA ORBITAL LOCALIZATION
+------------------------------------------------------------------------------
+
+Input orbitals are from                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+Output orbitals are to                   ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+Max. number of iterations                ... 128
+Localizations seeded randomly            ... off
+Convergence tolerance                    ... 1.000e-06
+Threshold for strong local MOs           ... 9.500e-01
+Threshold for bond MOs                   ... 8.500e-01
+Operator                                 ... 0
+Orbital range for localization           ... 0 to 0
+Localization criterion                   ... FOSTER-BOYS (AUGMENTED HESSIAN)
+Doing the dipole integrals     ... o.k.
+
+ORCA_LOC: ONLY ONE ORBITAL - SKIPPING LOCALIZATION
+
+
+--------------------------------------------------------------------------------
+                    LOCALIZED MOLECULAR ORBITAL COMPOSITIONS
+--------------------------------------------------------------------------------
+
+The Mulliken populations for each LMO on each atom are computed
+The LMO`s will be ordered according to atom index and type
+  (A) Strongly localized MO`s have populations of >=0.950 on one atom
+  (B) Two center bond orbitals have populations of >=0.850 on two atoms
+  (C) Other MO`s are considered to be `delocalized`
+
+FOUND  -   1 strongly local MO`s
+       -   0 two center bond MO`s
+       -   0 significantly delocalized MO`s
+
+Rather strongly localized orbitals:
+MO   0:   0C  -   1.000000
+Localized MO's were stored in: /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.loc
+
+Warning: reference  - re-canonicalizations have been set to INT 1 VIRT 1
+Warning: internal orbitals are localized - no re-canonicalization of internal orbitals
+Fock densities were made 
+Making Fock matrix and reference energy:
+
+--------------------------
+UNRESTRICTED FOCK OPERATOR
+--------------------------
+
+Recanonicalizing the virtual orbitals
+Storing new orbitals
+Time needed for Fock operator              ...            0.002 sec
+Reference energy                           ...    -37.645223457
+
+-----------------------
+SHARK RI TRANSFORMATION
+-----------------------
+
+Number of basis functions                ...     14
+Number of aux functions                  ...     48
+Number of operators                      ...      2
+Generation of IJK                        ... YES
+Generation of IAK                        ... YES
+Generation of ABK                        ... YES
+Orbital Range Operator  0:    1-   3 to    4-  13
+
+Orbital Range Operator  1:    1-   1 to    2-  13
+
+Aux basis identifier                     ...   AUXC
+Contraction scheme used                  ... SEGMENTED
+Do orthogonalization                     ... YES
+All operator combinations                ... NO
+Transpose (ia|K)                         ... NO
+Integral generator used                  ... LIBINT
+Starting integral generation + trafo... 
+Half trafo (segmented) done. Total time =  0.0 sec. integrals=  0.0 sec trafo=  0.0 sec
+Integral generation and half transformation done (  0.0 sec)
+
+Reading or making V^(-1/2)          ... done (  0.0 sec)
+Sorting IJK integrals               ... done (  0.0 sec)
+Sorting IAK integrals               ... done (  0.0 sec)
+Sorting ABK integrals               ... done (  0.0 sec)
+Sorting IJK integrals               ... done (  0.0 sec)
+Sorting IAK integrals               ... done (  0.0 sec)
+Sorting ABK integrals               ... done (  0.0 sec)
+
+SHARK RI integral transformation done. Total time =  0.0 sec.
+
+
+----------------
+SHARK (ij|ka)-RI
+----------------
+
+Input container IJ                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_0.tmp
+Input container KA                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_0.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IJKA_0.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,j)     ...    1 -    3
+Range of internal-indices (k)       ...    1 -    3
+Range of external-indices (a)       ...    4 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.09
+MB needed for one item                      ...      0.00
+Number of items                             ...         6
+Number of batches                           ...         1
+Items treated per batch                     ...         6
+Batch   0                          ...      6 matrices 
+completed (ij|kl) formation in   0.0 sec
+
+
+----------------
+SHARK (ij|ka)-RI
+----------------
+
+Input container IJ                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_0.tmp
+Input container KA                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_1.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IJKA_2.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,j)     ...    1 -    3
+Range of internal-indices (k)       ...    1 -    1
+Range of external-indices (a)       ...    2 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.09
+MB needed for one item                      ...      0.00
+Number of items                             ...         6
+Number of batches                           ...         1
+Items treated per batch                     ...         6
+Batch   0                          ...      6 matrices 
+completed (ij|kl) formation in   0.0 sec
+
+
+----------------
+SHARK (ij|ka)-RI
+----------------
+
+Input container IJ                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_1.tmp
+Input container KA                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_0.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IJKA_3.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,j)     ...    1 -    1
+Range of internal-indices (k)       ...    1 -    3
+Range of external-indices (a)       ...    4 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.09
+MB needed for one item                      ...      0.00
+Number of items                             ...         1
+Number of batches                           ...         1
+Items treated per batch                     ...         1
+Batch   0                          ...      1 matrices 
+completed (ij|kl) formation in   0.0 sec
+
+
+----------------
+SHARK (ij|ka)-RI
+----------------
+
+Input container IJ                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_1.tmp
+Input container KA                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_1.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IJKA_1.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,j)     ...    1 -    1
+Range of internal-indices (k)       ...    1 -    1
+Range of external-indices (a)       ...    2 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.10
+MB needed for one item                      ...      0.00
+Number of items                             ...         1
+Number of batches                           ...         1
+Items treated per batch                     ...         1
+Batch   0                          ...      1 matrices 
+completed (ij|kl) formation in   0.0 sec
+
+
+----------------
+SHARK (ij|ab)-RI
+----------------
+
+Input container IJ                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_0.tmp
+Input container AB                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._ABV_0.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IJAB_0.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,j)     ...    1 -    3
+Range of external-indices (a,b)     ...    4 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.10
+MB needed for one item                      ...      0.00
+Number of items                             ...         6
+Number of batches                           ...         1
+Items treated per batch                     ...         6
+Batch   0                          ...      6 matrices 
+completed (ij|ab) formation in   0.0 sec
+
+
+----------------
+SHARK (ij|ab)-RI
+----------------
+
+Input container IJ                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_0.tmp
+Input container AB                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._ABV_1.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IJAB_2.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,j)     ...    1 -    3
+Range of external-indices (a,b)     ...    2 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.10
+MB needed for one item                      ...      0.00
+Number of items                             ...         6
+Number of batches                           ...         1
+Items treated per batch                     ...         6
+Batch   0                          ...      6 matrices 
+completed (ij|ab) formation in   0.0 sec
+
+
+----------------
+SHARK (ij|ab)-RI
+----------------
+
+Input container IJ                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_1.tmp
+Input container AB                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._ABV_0.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IJAB_3.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,j)     ...    1 -    1
+Range of external-indices (a,b)     ...    4 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.10
+MB needed for one item                      ...      0.00
+Number of items                             ...         1
+Number of batches                           ...         1
+Items treated per batch                     ...         1
+Batch   0                          ...      1 matrices 
+completed (ij|ab) formation in   0.0 sec
+
+
+----------------
+SHARK (ij|ab)-RI
+----------------
+
+Input container IJ                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_1.tmp
+Input container AB                  ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._ABV_1.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IJAB_1.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,j)     ...    1 -    1
+Range of external-indices (a,b)     ...    2 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.11
+MB needed for one item                      ...      0.00
+Number of items                             ...         1
+Number of batches                           ...         1
+Items treated per batch                     ...         1
+Batch   0                          ...      1 matrices 
+completed (ij|ab) formation in   0.0 sec
+
+
+----------------
+SHARK (ik|jl)-RI 
+----------------
+
+Input container (i,k)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_0.tmp
+Input container (j,l)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_0.tmp
+Same Container                      ...    YES
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IKJL_0.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,k)     ...    1 -    3
+Range of internal-indices (j,l)     ...    1 -    3
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.08
+MB needed for one item                      ...      0.00
+Number of items                             ...         3
+Number of batches                           ...         1
+Items treated per batch                     ...         3
+Batch   0                          ...      3 matrices 
+completed (ik|jl) formation in   0.0 sec
+
+
+----------------
+SHARK (ik|jl)-RI 
+----------------
+
+Input container (i,k)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_0.tmp
+Input container (j,l)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_1.tmp
+Same Container                      ...     NO
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IKJL_2.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,k)     ...    1 -    3
+Range of internal-indices (j,l)     ...    1 -    1
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.08
+MB needed for one item                      ...      0.00
+Number of items                             ...         3
+Number of batches                           ...         1
+Items treated per batch                     ...         3
+Batch   0                          ...      3 matrices 
+completed (ik|jl) formation in   0.0 sec
+
+
+----------------
+SHARK (ik|jl)-RI 
+----------------
+
+Input container (i,k)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_1.tmp
+Input container (j,l)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_1.tmp
+Same Container                      ...    YES
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IKJL_1.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,k)     ...    1 -    1
+Range of internal-indices (j,l)     ...    1 -    1
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.09
+MB needed for one item                      ...      0.00
+Number of items                             ...         1
+Number of batches                           ...         1
+Items treated per batch                     ...         1
+Batch   0                          ...      1 matrices 
+completed (ik|jl) formation in   0.0 sec
+
+
+----------------
+SHARK (ik|ja)-RI 
+----------------
+
+Input container (i,k)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_0.tmp
+Input container (j,a)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_0.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IKJA_0.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,k)     ...    1 -    3
+Range of internal-indices (j)       ...    1 -    3
+Range of external-indices (a)       ...    4 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.09
+MB needed for one item                      ...      0.00
+Number of items                             ...         3
+Number of batches                           ...         1
+Items treated per batch                     ...         3
+Batch   0                          ...      3 matrices 
+completed (ik|ja) formation in   0.0 sec
+
+
+----------------
+SHARK (ik|ja)-RI 
+----------------
+
+Input container (i,k)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_0.tmp
+Input container (j,a)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_1.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IKJA_2.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,k)     ...    1 -    3
+Range of internal-indices (j)       ...    1 -    1
+Range of external-indices (a)       ...    2 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.09
+MB needed for one item                      ...      0.00
+Number of items                             ...         3
+Number of batches                           ...         1
+Items treated per batch                     ...         3
+Batch   0                          ...      3 matrices 
+completed (ik|ja) formation in   0.0 sec
+
+
+----------------
+SHARK (ik|ja)-RI 
+----------------
+
+Input container (i,k)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_1.tmp
+Input container (j,a)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_0.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IKJA_3.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,k)     ...    1 -    1
+Range of internal-indices (j)       ...    1 -    3
+Range of external-indices (a)       ...    4 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.10
+MB needed for one item                      ...      0.00
+Number of items                             ...         1
+Number of batches                           ...         1
+Items treated per batch                     ...         1
+Batch   0                          ...      1 matrices 
+completed (ik|ja) formation in   0.0 sec
+
+
+----------------
+SHARK (ik|ja)-RI 
+----------------
+
+Input container (i,k)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IJV_1.tmp
+Input container (j,a)               ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_1.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IKJA_1.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (i,k)     ...    1 -    1
+Range of internal-indices (j)       ...    1 -    1
+Range of external-indices (a)       ...    2 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.10
+MB needed for one item                      ...      0.00
+Number of items                             ...         1
+Number of batches                           ...         1
+Items treated per batch                     ...         1
+Batch   0                          ...      1 matrices 
+completed (ik|ja) formation in   0.0 sec
+
+
+----------------
+SHARK (ia|jb)-RI 
+----------------
+
+Input container                     ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_0.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IAJB_0.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices           ...    1 -    3
+Range of external-indices           ...    4 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.10
+MB needed for one item                      ...      0.00
+Number of items                             ...         3
+Number of batches                           ...         1
+Items treated per batch                     ...         3
+Batch   0                          ...      1-     3 (     3)
+complete (ia|jb) formation in   0.0 sec
+
+
+---------------------
+SHARK (ia|jb)-RI(UHF)
+---------------------
+
+Input container (alpha)             ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_0.tmp
+Input container (beta)              ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_1.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IAJB_2.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices (alpha)   ...    1 -    3
+Range of external-indices (alpha)   ...    4 -   13
+Range of internal-indices (beta)    ...    1 -    1
+Range of external-indices (beta)    ...    2 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.10
+MB needed for one item                      ...      0.00
+Number of items                             ...         1
+Number of batches                           ...         1
+Items treated per batch                     ...         1
+Batch   0                          ...      1-     1 (     1)
+complete (ia|jb)(UHF) formation in   0.0 sec
+
+
+----------------
+SHARK (ia|jb)-RI 
+----------------
+
+Input container                     ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._IAV_1.tmp
+Output container                    ... /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp._RI_IAJB_1.tmp
+Number of Aux functions             ...   48       
+Range of internal-indices           ...    1 -    1
+Range of external-indices           ...    2 -   13
+Max Core memory in MB               ...   8000
+
+Available core memory in MB                 ...   7982.11
+MB needed for one item                      ...      0.00
+Number of items                             ...         1
+Number of batches                           ...         1
+Items treated per batch                     ...         1
+Batch   0                          ...      1-     1 (     1)
+complete (ia|jb) formation in   0.0 sec
+
+
+-----------------------
+SPIN UNRESTRICTED GUESS
+-----------------------
+
+Spin-components of the MP2 energy:
+EMP2(aa)=     -0.008767884
+EMP2(bb)=      0.000000000
+EMP2(ab)=     -0.042072822
+
+Initial guess performed in     0.000 sec
+E(0)                                       ...    -37.645223457
+E(MP2)                                     ...     -0.050840706
+Initial E(tot)                             ...    -37.696064163
+<T|T>                                      ...      0.020937541
+Number of pairs included                   ... 6
+
+---------------------------
+UHF QUADRATIC CI ITERATIONS
+---------------------------
+
+Number of amplitudes to be optimized       ...          531
+
+Iter       E(tot)           E(Corr)          Delta-E          Residual     Time      <S|S>**1/2
+  0 Entering Calc_Sigma_UHF
+Calling CC/MakeTauAmplitudes
+Calling QCI/DressFock
+Done with QCI/DressFock (    0.000 sec)
+Calling QCI/DressIKJL
+Done with QCI/DressIKJL (    0.000 sec)
+Calling QCI/DressJK
+Done with QCI/DressJK (    0.000 sec)
+Calling Calc_0D_1
+Done with Calc_0D_1  (    0.000 sec)
+Largest sigma element after [0D_1] :      0.067022521
+Calling Calc_DD_0a
+Done with Calc_DD_0a (    0.000 sec) 
+Calling Calc_DD_0b
+Done with Calc_DD_0b (    0.000 sec)
+Largest sigma element after [DD_0] :      0.043109860
+Calling Calc_DD_2a
+Done with Calc_DD_2a (    0.000 sec)
+Calling Calc_DD_2b
+Done with Calc_DD_2b (    0.000 sec)
+Largest sigma element after [DD_2] :      0.047613946
+Calling Calc_DD_4_RI
+[file orca_mdci/mdci_uhf_sigma.cpp, line 3541]: Error (ORCA_MDCI): K(C)-RI not implemented in UHF branch
+
+
+ORCA finished by error termination in MDCI
+Calling Command: orca_mdci /home/ubuntu/Shiwei/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_elem/c/c_mp2_def2svp.mdciinp.tmp 
+[file orca_tools/qcmsg.cpp, line 394]: 
+  .... aborting the run
+

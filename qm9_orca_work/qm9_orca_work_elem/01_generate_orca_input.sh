@@ -63,7 +63,23 @@ for atom in "${ATOMS[@]}"; do
 
             infile="${out_dir}/${atom_lc}_${method_lc}_${basis_key}.inp"
             orca_method="${METHOD_MAP[$method]}"
-            cat > "${infile}" << EOF
+            
+            # For MP2, don't include %mdci block (not needed for single atoms)
+            if [[ "$method" == "MP2" ]]; then
+                cat > "${infile}" << EOF
+! ${orca_method} ${basis_name} ${aux_basis}
+${ORCA_MEM}
+%method
+FrozenCore FC_ELECTRONS
+end
+
+*xyz 0 ${multiplicity}
+${atom} 0.0 0.0 0.0
+*
+EOF
+            else
+                # For CCSD methods, include %mdci and %loc blocks
+                cat > "${infile}" << EOF
 ! ${orca_method} ${basis_name} ${aux_basis}
 ${ORCA_MEM}
 %method
@@ -84,6 +100,7 @@ end
 ${atom} 0.0 0.0 0.0
 *
 EOF
+            fi
             echo "Successfully generated input file: ${infile}"
         done
     done

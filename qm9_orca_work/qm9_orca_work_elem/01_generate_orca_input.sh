@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Initial set
 declare -A ATOM_MULTIPLICITY=( ["H"]=2  ["C"]=3 ["N"]=4 ["O"]=3 ["F"]=2 )
-ATOMS=("C" "H" "O" "N" "F")
+ATOMS=("H" "C" "O" "N" "F")
 METHODS=("MP2" "CCSD" "CCSD(T)")
 
 # Method and Basis sets mapping: key -> ORCA format
@@ -21,13 +21,14 @@ declare -A BASIS_MAP=(
     ["def2tzvp"]="def2-TZVP"
     ["ccpvdz"]="cc-pVDZ"
     ["ccpvtz"]="cc-pVTZ"
+    ["aug-ccpvtz"]="aug-cc-pVTZ"
     ["321g"]="3-21G"
 )
-BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "def2svp" "def2tzvp" "ccpvdz" "ccpvtz" "321g")
+BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "def2svp" "def2tzvp" "ccpvdz" "ccpvtz" "aug-ccpvtz" "321g")
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 # ORCA_PAL="%pal nprocs 16 end"
-ORCA_MEM="%maxcore 8000"
+ORCA_MEM="%maxcore 2000"
 echo -e "Generating ORCA input files for single element atoms: basis: ${BASIS_SETS[*]}, methods: ${METHODS[*]}"
 
 get_basis_config() {
@@ -37,7 +38,7 @@ get_basis_config() {
     if [[ "$basis_key" =~ ^def2 ]]; then
         # def2
         echo "def2/JK RIJK ${basis_name}/C"
-    elif [[ "$basis_key" =~ ^(ccpvtz) ]]; then
+    elif [[ "$basis_key" =~ ^(ccpvtz|aug-ccpvtz) ]]; then
         # cc
         echo "${basis_name}/JK RIJK ${basis_name}/C"
     else

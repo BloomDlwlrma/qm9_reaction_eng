@@ -70,9 +70,6 @@ for atom in "${ATOMS[@]}"; do
                 cat > "${infile}" << EOF
 ! ${orca_method} ${basis_name} ${aux_basis}
 ${ORCA_MEM}
-%method
-FrozenCore FC_ELECTRONS
-end
 
 *xyz 0 ${multiplicity}
 ${atom} 0.0 0.0 0.0
@@ -83,9 +80,6 @@ EOF
                 cat > "${infile}" << EOF
 ! ${orca_method} ${basis_name} ${aux_basis}
 ${ORCA_MEM}
-%method
-FrozenCore FC_ELECTRONS
-end
 
 %mdci
    TCutPairs 1e-6

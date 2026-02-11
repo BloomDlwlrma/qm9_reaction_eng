@@ -8,7 +8,7 @@
 #SBATCH --time=24:00:00                           # Wall time limit (days-hrs:min:sec)
 #SBATCH --partition=intel                         # Specifiy Partition (intel/amd)
 #SBATCH --nodes=1                                 # Number of compute node
-#SBATCH --ntasks=32                               # CPUs used for ORCA
+#SBATCH --ntasks=32                              # CPUs used for ORCA
 #SBATCH --ntasks-per-node=32                      # CPUs used per node
 #SBATCH --output=%x.out.%j                        # Standard output file
 #SBATCH --error=%x.err.%j                         # Standard error file
@@ -17,14 +17,14 @@
 # Config & Arrays
 #################################################################################
 
-#ATOMS=("C" "H" "O" "N" "F")
-#METHODS=("MP2" "CCSD" "CCSD(T)")
-#BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "def2svp" "def2tzvp" "ccpvdz" "ccpvtz" "321g")
+ATOMS=("C" "H" "O" "N" "F")
+METHODS=("MP2" "CCSD" "CCSD(T)")
+BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "def2svp" "def2tzvp" "ccpvdz" "ccpvtz" "321g")
 
 # Testing to debugging
-ATOMS=("C")
-METHODS=("CCSD")
-BASIS_SETS=("ccpvtz")
+#ATOMS=("C")
+#METHODS=("CCSD")
+#BASIS_SETS=("def2svp")
 
 #################################################################################
 # Setup Environment
@@ -44,7 +44,8 @@ function clean_up()
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 cd ${SLURM_SUBMIT_DIR}
-NPROCS=${SLURM_NTASKS}
+#NPROCS=${SLURM_NTASKS}
+NPROCS=8
 SCRATCH=${WORK}/ORCA_SCR
 WORK_DIR=$(pwd)
 mkdir -p ${SCRATCH}
@@ -83,7 +84,7 @@ for atom in "${ATOMS[@]}"; do
             OUTFILE="${ATOM_DIR}/${JOBNAME}.out"
             
             if [[ ! -f "${INFILE}" ]]; then
-                echo "WARNING: Input file missing: ${INFILE}. Skipping." 
+                echo "WARNING: Input file missing: ${INFILE} Skipping." 
                 continue
             fi
             
@@ -101,17 +102,15 @@ for atom in "${ATOMS[@]}"; do
             (
                 SCRATCH_INP="${SCRATCH}/${JOBNAME}.inp"
                 
-                echo "%pal nprocs ${NPROCS} end" >  "${SCRATCH_INP}"
+                #echo "%pal nprocs ${NPROCS} end" >  "${SCRATCH_INP}"
                 cat  "${INFILE}"  >> "${SCRATCH_INP}"
                 
                 echo "Display first 10 line of input file..."
                 head -10  "${SCRATCH_INP}"
 
-                echo "Running ORCA on ${SCRATCH_INP} ..."
                 time ${ORCA_HOME}/bin/orca "${SCRATCH_INP}" > "${SCRATCH}/${JOBNAME}.out"
                 
                 echo "Moving results from ${SCRATCH} to ${ATOM_DIR} ..."
-                
                 mv "${SCRATCH}/${JOBNAME}.out" "${ATOM_DIR}/"
                 
                 # Move all other generated files (gbw, hess, xyz, etc.)

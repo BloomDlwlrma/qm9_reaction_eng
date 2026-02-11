@@ -3,8 +3,8 @@
 ## SLURM Submission Script for All Atom Calculations                            #
 #################################################################################
 #SBATCH --job-name=orca-rundir                    # Job name
-##SBATCH --mail-type=END,FAIL                      # Mail events
-##SBATCH --mail-user=abc@email                     # Update your email address
+#SBATCH --mail-type=END,FAIL                      # Mail events
+#SBATCH --mail-user=u3651388@domain.com         # Update your email address
 #SBATCH --time=24:00:00                           # Wall time limit (days-hrs:min:sec)
 #SBATCH --partition=intel                         # Specifiy Partition (intel/amd)
 #SBATCH --nodes=1                                 # Number of compute node
@@ -17,14 +17,14 @@
 # Config & Arrays
 #################################################################################
 
-ATOMS=("C" "H" "O" "N" "F")
-METHODS=("MP2" "CCSD" "CCSD(T)")
-BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "def2svp" "def2tzvp" "ccpvdz" "ccpvtz" "321g")
+#ATOMS=("C" "H" "O" "N" "F")
+#METHODS=("MP2" "CCSD" "CCSD(T)")
+#BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "def2svp" "def2tzvp" "ccpvdz" "ccpvtz" "321g")
 
 # Testing to debugging
-#ATOMS=("C")
-#METHODS=("CCSD")
-#BASIS_SETS=("def2svp")
+ATOMS=("H")
+METHODS=("CCSD" "CCSD(T)")
+BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "def2svp" "def2tzvp" "ccpvdz" "ccpvtz" "321g")
 
 #################################################################################
 # Setup Environment
@@ -94,8 +94,9 @@ for atom in "${ATOMS[@]}"; do
                 continue
             fi
 
+            echo ""
             echo "----------------------------------------------------------------"
-            echo "Processing (In-Place): ${JOBNAME}"
+            echo "Processing (In-Place): ${JOBNAME}, time: $(date)"
             
             # Run In-Place (Simplified)
             # Use a subshell to change dir safely
@@ -105,8 +106,7 @@ for atom in "${ATOMS[@]}"; do
                 #echo "%pal nprocs ${NPROCS} end" >  "${SCRATCH_INP}"
                 cat  "${INFILE}"  >> "${SCRATCH_INP}"
                 
-                echo "Display first 10 line of input file..."
-                head -10  "${SCRATCH_INP}"
+                head -1  "${SCRATCH_INP}"
 
                 time ${ORCA_HOME}/bin/orca "${SCRATCH_INP}" > "${SCRATCH}/${JOBNAME}.out"
                 

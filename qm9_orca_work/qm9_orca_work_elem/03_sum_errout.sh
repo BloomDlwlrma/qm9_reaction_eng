@@ -11,11 +11,6 @@ echo "Last update: $(date "+%Y/%m/%d -- %H:%M:%S")"
 # =============================================================================
 
 # ==================== CONFIG ====================
-# Uncomment and modify if you want to run for specific atoms only
-# ATOMS=("c" "h" "o" "n" "f")
-# For now, we scan all atom subdirectories under WORK_DIR
-
-# Common ORCA error keywords (case-insensitive)
 shopt -s extglob nullglob
 ERROR_PATTERNS=(
     "aborting the run"
@@ -50,13 +45,13 @@ find "${WORK_DIR}" -mindepth 1 -maxdepth 1 -type d | while read -r atom_dir; do
     if [[ ! "${atom_lc}" =~ ^[a-z]$ ]]; then
         continue
     fi
-    
     echo "Processing atom: ${atom_lc} (${atom_dir})"
     
     # Find all .out files in this atom directory
     find "${atom_dir}" -type f -name "*.out" | while read -r outfile; do
         jobname="${outfile%.out}"
         inpfile="${jobname}.inp"
+        out_file="${jobname}.out"
         errfile="${jobname}.err"
         
         # Skip if no corresponding .inp (unusual case)
@@ -93,20 +88,17 @@ find "${WORK_DIR}" -mindepth 1 -maxdepth 1 -type d | while read -r atom_dir; do
                     echo "  - ${pattern}" >> "${errfile}"
                 fi
             done
-            echo "Last 50 lines of output:" >> "${errfile}"
-            tail -n 50 "${outfile}" >> "${errfile}"
-            
-            echo "  Cleaning up failed job files..."
-            shopt -s extglob nullglob
-            rm -vf "${jobname}".!(inp|out|err) 2>/dev/null
+            echo "Last 25 lines of output:" >> "${errfile}"
+            tail -n 25 "${outfile}" >> "${errfile}"
+
+            job_basename=$(basename "${jobname}")
+            rm -vf "${jobname}".!(inp|out|err) 2>/dev/null            
+            mv  "${out_file}" "${WORK_DIR}/orca_errs/${job_basename}.out"
+            mv  "${errfile}" "${WORK_DIR}/orca_errs/${job_basename}.err" 
             # Also remove possible .err if we want to overwrite, but we already created new one
             
             echo "  → Cleanup done for ${jobname}"
-        else
-            echo "  OK (no error detected): ${jobname}"
         fi
-        
-        echo ""
     done
 done
 

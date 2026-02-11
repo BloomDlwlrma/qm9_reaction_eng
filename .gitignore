@@ -19,6 +19,7 @@ qm9_orca_work/qm9_orca_work_elem/h/
 qm9_orca_work/qm9_orca_work_elem/n/
 qm9_orca_work/qm9_orca_work_elem/o/
 qm9_orca_work/qm9_orca_work_elem/orca_outputs/
+qm9_orca_work/qm9_orca_work_elem/orca_errs/
 
 # XYZ files
 qm9_xyz_files/

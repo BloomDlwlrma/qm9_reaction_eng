@@ -55,7 +55,10 @@ build/
 
 # Log files
 *.log
+*.out
 
 # Temporary files
 *.tmp
 *.temp
+*.err.*
+*.out.*

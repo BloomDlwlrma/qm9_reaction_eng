@@ -37,6 +37,7 @@ echo "Base directory: ${WORK_DIR}"
 echo "Scanning subdirectories for atom folders..."
 echo ""
 
+rm -vf "${WORK_DIR}/orca_errs"/* 2>/dev/null
 # Find all atom directories (assuming lowercase like c, h, o...)
 find "${WORK_DIR}" -mindepth 1 -maxdepth 1 -type d | while read -r atom_dir; do
     atom_lc=$(basename "${atom_dir}")

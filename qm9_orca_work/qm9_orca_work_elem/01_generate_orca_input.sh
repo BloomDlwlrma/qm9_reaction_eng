@@ -16,8 +16,8 @@ declare -A METHOD_MAP=(
 )
 declare -A METHOD_MAP_H=(
     ["MP2"]="MP2"
-    ["CCSD"]="CCSD"
-    ["CCSD(T)"]="CCSD(T)"
+    ["CCSD"]="HF"
+    ["CCSD(T)"]="HF"
 )
 declare -A BASIS_MAP=(
     ["631g"]="6-31G"
@@ -88,7 +88,7 @@ ${ORCA_MEM}
 ${atom} 0.0 0.0 0.0
 *
 EOF
-            elif [[ "$method" == "CCSD" || "$method" == "CCSD(T)" && "$atom_lc" != "h" ]]; then
+            elif [[ ( "$method" == "CCSD" || "$method" == "CCSD(T)" ) && "$atom_lc" != "h" ]]; then
                 # For CCSD methods, include %mdci and %loc blocks
                 cat > "${infile}" << EOF
 ! ${orca_method} ${basis_name} ${aux_basis}
@@ -113,10 +113,6 @@ EOF
                 cat > "${infile}" << EOF
 ! ${orca_method} ${basis_name}
 ${ORCA_MEM} 
-
-%mdci
-    UseQROs false
-end
 
 *xyz 0 ${multiplicity}
 ${atom} 0.0 0.0 0.0

@@ -5,10 +5,11 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=180G
+##SBATCH --mem=10G # 180G
+#SBATCH --mem-per-cpu=1200M
 #SBATCH --output=/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/orca_rundir_info/batch_%A_%a.out
 #SBATCH --error=/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/orca_rundir_info/batch_%A_%a.err
-#SBATCH --array=0-1 # 0-259
+#SBATCH --array=0-31 # 0-259
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=1070461445@qq.com
 
@@ -19,7 +20,7 @@
 #      and concurrency(intel: 4|amd: 16), CHUNK_SIZE(intel: 500|amd: 2000) as needed.
 # ==============================================================================
 BASE_ID=1
-CHUNK_SIZE=500
+CHUNK_SIZE=20 # 500
 OFFSET=$((SLURM_ARRAY_TASK_ID * CHUNK_SIZE)) # slurm_array_task_id starts from 0 to 259 for 260 jobs, adjust if needed, 260 * 500 = 130000 molecules (full QM9)
 START_ID=$((BASE_ID + OFFSET))
 END_ID=$((START_ID + CHUNK_SIZE - 1))

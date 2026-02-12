@@ -20,6 +20,10 @@ qm9_orca_work/qm9_orca_work_elem/n/
 qm9_orca_work/qm9_orca_work_elem/o/
 qm9_orca_work/qm9_orca_work_elem/orca_outputs/
 qm9_orca_work/qm9_orca_work_elem/orca_errs/
+qm9_orca_work/qm9_orca_work_mole/orca_errs
+qm9_orca_work/qm9_orca_work_mole/orca_files
+qm9_orca_work/qm9_orca_work_mole/orca_errs
+qm9_orca_work/qm9_orca_work_mole/orca_rundir_info
 
 # XYZ files
 qm9_xyz_files/

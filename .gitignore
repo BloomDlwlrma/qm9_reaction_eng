@@ -12,7 +12,6 @@ src/test/
 tdnn/test/
 
 # ORCA work directories
-qm9_orca_work/qm9_orca_work_molecu/
 qm9_orca_work/qm9_orca_work_elem/c/
 qm9_orca_work/qm9_orca_work_elem/f/
 qm9_orca_work/qm9_orca_work_elem/h/
@@ -20,10 +19,11 @@ qm9_orca_work/qm9_orca_work_elem/n/
 qm9_orca_work/qm9_orca_work_elem/o/
 qm9_orca_work/qm9_orca_work_elem/orca_outputs/
 qm9_orca_work/qm9_orca_work_elem/orca_errs/
-qm9_orca_work/qm9_orca_work_mole/orca_errs
+
 qm9_orca_work/qm9_orca_work_mole/orca_files
 qm9_orca_work/qm9_orca_work_mole/orca_errs
 qm9_orca_work/qm9_orca_work_mole/orca_rundir_info
+qm9_orca_work/qm9_orca_work_mole/orca_output
 
 # XYZ files
 qm9_xyz_files/

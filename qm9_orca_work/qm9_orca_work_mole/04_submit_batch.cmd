@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=qm9_orca
 #SBATCH --partition=amd # intel or amd
+#SBATCH --qos=hugemem # Use hugemem QOS for processing 130k molecules, avoiding debug QOS quota limits
 #SBATCH --time=1-00:00:00 # 3-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

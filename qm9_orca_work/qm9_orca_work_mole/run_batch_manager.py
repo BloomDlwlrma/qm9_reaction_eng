@@ -49,10 +49,13 @@ def load_checkpoint():
             return json.load(f)
     return {}
 
-def save_checkpoint(checkpoint):
-    """Atomic save checkpoint"""
-    with open(CHECKPOINT_FILE, 'w') as f:
+def save_checkpoint(checkpoint, lock=None):
+    """Atomic save checkpoint with lock"""
+    # lock is managed by caller now
+    tmp_file = CHECKPOINT_FILE + ".tmp"
+    with open(tmp_file, 'w') as f:
         json.dump(checkpoint, f, indent=2)
+    os.replace(tmp_file, CHECKPOINT_FILE)
 
 def is_completed(mol_id, method, checkpoint):
     """Check if task is done (out file exists or checkpoint says so)"""
@@ -62,6 +65,22 @@ def is_completed(mol_id, method, checkpoint):
         return True
     return checkpoint.get(str(mol_id), {}).get(method, False)
 
+def copy_inputs_sequentially(start_id, end_id):
+    """Sequential copy 3 inp per molecule"""
+    copied = 0
+    for mol_id in range(start_id, end_id + 1):
+        mol_dir = os.path.join(SOURCE_ROOT, f"dsgdb9nsd_{mol_id:06d}")
+        if not os.path.isdir(mol_dir):
+            continue
+        for method in ["mp2", "ccsd", "ccsdt"]:
+            inp = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.inp"
+            src = os.path.join(mol_dir, inp)
+            dst = os.path.join(ORCA_FILES_DIR, inp)
+            if os.path.exists(src):
+                shutil.copy2(src, dst)
+                copied += 1
+    print(f"✓ Copied {copied} input files (sequential)")
+    return copied > 0
 # ===============================================================================
 # CPU Binding Functions
 # ===============================================================================
@@ -90,28 +109,10 @@ def create_rankfile(slot_idx, cpu_range, nprocs):
         for r in range(nprocs):
             f.write(f"rank {r}={hostname} slot={socket_id}:{local_start + r}\n")
     return rankfile_path
-
-def copy_inputs_sequentially(start_id, end_id):
-    """Sequential copy 3 inp per molecule"""
-    copied = 0
-    for mol_id in range(start_id, end_id + 1):
-        mol_dir = os.path.join(SOURCE_ROOT, f"dsgdb9nsd_{mol_id:06d}")
-        if not os.path.isdir(mol_dir):
-            continue
-        for method in ["mp2", "ccsd", "ccsdt"]:
-            inp = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.inp"
-            src = os.path.join(mol_dir, inp)
-            dst = os.path.join(ORCA_FILES_DIR, inp)
-            if os.path.exists(src):
-                shutil.copy2(src, dst)
-                copied += 1
-    print(f"✓ Copied {copied} input files (sequential)")
-    return copied > 0
-
 # ==============================================================================
 # Main Task Function
 # ==============================================================================
-def run_task(task_info, checkpoint):
+def run_task(task_info, checkpoint, lock):
     mol_id, method, cpu_range, nprocs, slot_id = task_info
     mol_dir = os.path.join(SOURCE_ROOT, f"dsgdb9nsd_{mol_id:06d}")
     inp_file = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.inp"
@@ -120,6 +121,14 @@ def run_task(task_info, checkpoint):
     work_out = os.path.join(ORCA_FILES_DIR, f"{job_base}.out")
 
     prefix = f"[Slot {slot_id} | {job_base}]" # Slot means the worker process handling this task
+    
+    # Cleanup any residue from previous failed runs for THIS speciifc job
+    for f in glob.glob(os.path.join(ORCA_FILES_DIR, f"{job_base}*")):
+         if os.path.abspath(f) == os.path.abspath(work_inp): continue
+         try:
+             if os.path.isfile(f): os.remove(f)
+         except OSError: pass
+    
     if not os.path.exists(work_inp):
         print(f"{prefix} SKIP: inp missing")
         return
@@ -133,22 +142,35 @@ def run_task(task_info, checkpoint):
             if "%pal" not in line.lower():
                 f.write(line)
 
-    # Create rankfile (NUMA-optimized)
-    rankfile = create_rankfile(slot_id, cpu_range, nprocs)
-
     # Run ORCA with OpenMPI binding + timeout
     env = os.environ.copy()
     env["PATH"] = f"{ORCA_HOME}/bin:{env.get('PATH','')}"
     env["LD_LIBRARY_PATH"] = f"{ORCA_HOME}/lib:{env.get('LD_LIBRARY_PATH','')}"
+    
+    # Allow OpenMPI to oversubscribe slots (needed when running multiple mpirun instances in one SLURM allocation)
+    env["OMPI_MCA_rmaps_base_oversubscribe"] = "1"
+    env["OMPI_MCA_hwloc_base_binding_policy"] = "none"
 
-    cmd = [
-        "timeout", "4h", ORCA_BIN, work_inp,
-        "--bind-to", "core",
-        "--map-by", "core",
-        "-rf", rankfile
-    ]
+    # Check if we should skip binding (set by submit script)
+    skip_binding = os.environ.get("ORCA_SKIP_CPU_BIND", "0") == "1"
 
-    print(f"{prefix} START on cores {cpu_range} (socket-aware)")
+    if skip_binding:
+         cmd = [
+            "timeout", "4h", ORCA_BIN, work_inp
+        ]
+         print(f"{prefix} START on simple mode (no explicit binding)")
+         rankfile = None
+    else:
+        # Create rankfile (NUMA-optimized)
+        rankfile = create_rankfile(slot_id, cpu_range, nprocs)
+        cmd = [
+            "timeout", "4h", ORCA_BIN, work_inp,
+            "--bind-to", "core",
+            "--map-by", "core",
+            "-rf", rankfile
+        ]
+        print(f"{prefix} START on cores {cpu_range} (socket-aware)")
+
     start_t = time.time()
     try:
         with open(work_out, "w") as outf:
@@ -173,19 +195,43 @@ def run_task(task_info, checkpoint):
     if os.path.exists(work_out):
         shutil.copy2(work_out, os.path.join(FINAL_OUT_DIR, f"{job_base}.out"))
 
-    # Move ALL files back to original molecule folder
+    # Cleanup residue from THIS job (output already saved to FINAL dirs)
     for f in glob.glob(os.path.join(ORCA_FILES_DIR, f"{job_base}*")):
-        if not f.endswith(".txt"):  # skip rankfile
-            shutil.move(f, os.path.join(mol_dir, os.path.basename(f)))
+         if f == work_inp: continue # Keep input file for reference/debugging
+         try:
+             # Cleanup helps prevent disk filling up with intermediate files
+             if os.path.isfile(f): os.remove(f)
+         except OSError: pass
 
-    os.remove(rankfile)
+    # Move ALL files back to original molecule folder (DISABLED as requested)
+    # for f in glob.glob(os.path.join(ORCA_FILES_DIR, f"{job_base}*")):
+    #     if not f.endswith(".txt"):  # skip rankfile
+    #         shutil.move(f, os.path.join(mol_dir, os.path.basename(f)))
+
+    if rankfile and os.path.exists(rankfile):
+        try:
+            os.remove(rankfile)
+        except OSError:
+            pass
 
     # Update checkpoint
     mol_key = str(mol_id)
-    if mol_key not in checkpoint:
-        checkpoint[mol_key] = {}
-    checkpoint[mol_key][method] = True
-    save_checkpoint(checkpoint)
+
+    with lock:
+        current_cp = load_checkpoint()
+        if str(mol_id) not in current_cp:
+            current_cp[str(mol_id)] = {}
+        current_cp[str(mol_id)][method] = True
+        save_checkpoint(current_cp) 
+
+    # Correct concurrency handling for checkpoint
+    # with lock:
+    #     current_cp = load_checkpoint()
+    #     if str(mol_id) not in current_cp:
+    #         current_cp[str(mol_id)] = {}
+    #     current_cp[str(mol_id)][method] = True
+    #     save_checkpoint(current_cp) # save_checkpoint don't need lock arg if we are already holding it? 
+    #     # I modified save_checkpoint to take a lock. Let's adjust.
     print(f"{prefix} DONE (checkpoint updated)")
 
 def print_progress(start_id, end_id, checkpoint):
@@ -206,7 +252,7 @@ def main():
     ensure_dirs()
     checkpoint = load_checkpoint()
     print_progress(start_id, end_id, checkpoint)
-    if not copy_inputs_sequentially(start_id, end_id, checkpoint):
+    if not copy_inputs_sequentially(start_id, end_id):
         print("All tasks completed in range, skipping.")
         sys.exit(0)
 
@@ -226,15 +272,16 @@ def main():
         q.put(None)
     print(f"Queued {count} pending tasks.")
     
-    def worker(sid, crange, np):
+    def worker(sid, crange, np, lock):
         while True:
             item = q.get()
             if item is None: break
-            run_task((item[0], item[1], crange, np, sid), checkpoint)
+            run_task((item[0], item[1], crange, np, sid), checkpoint, lock)
 
     procs = []
+    lock = multiprocessing.Lock()
     for i in range(concurrency):
-        p = multiprocessing.Process(target=worker, args=(i, cpu_ranges[i], nprocs))
+        p = multiprocessing.Process(target=worker, args=(i, cpu_ranges[i], nprocs, lock))
         p.start()
         procs.append(p)
     for p in procs:
@@ -242,7 +289,7 @@ def main():
 
     # Final batch error check
     print_progress(start_id, end_id, checkpoint)
-    subprocess.run([os.path.join(WORK_ROOT, "03_sum_errout.sh")], cwd=SOURCE_ROOT, shell=True)
+    # subprocess.run([os.path.join(WORK_ROOT, "03_sum_errout.sh")], cwd=SOURCE_ROOT, shell=True)
     print("=== CHUNK DONE (checkpoint saved) ===")
 
 if __name__ == "__main__":

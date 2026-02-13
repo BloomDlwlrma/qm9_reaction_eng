@@ -40,18 +40,19 @@ get_basis_config() {
     if [[ "$basis_key" =~ ^def2 ]]; then
         # def2
         echo "def2/JK RIJK ${basis_name}/C"
+    elif [[ "$basis_key" == "ccpvdz" ]]; then
+        echo "cc-pVTZ/JK RIJK ${basis_name}/C"
     elif [[ "$basis_key" =~ ^(ccpvtz|aug-ccpvtz) ]]; then
         # cc-pvtz, aug-cc-pvtz
         echo "${basis_name}/JK RIJK ${basis_name}/C"
-    elif [[ "$basis_key" == "ccpvdz" ]]; then
-        echo "cc-pVTZ/JK RIJK ${basis_name}/C"
     else
         # 3-21G, 6-31G, ccpvdz: use def2 auxiliary basis
         echo "def2/JK RIJK def2-SVP/C"
     fi
 }
 
-for xyz_file_path in "${xyz_dir}"/*.xyz; do
+process_xyz_file() {
+    local xyz_file_path=$1
     mole_filename=$(basename "${xyz_file_path}")
     mole_lc="${mole_filename%.xyz}"
     out_dir="${script_dir}/${mole_lc}"
@@ -92,6 +93,24 @@ EOF
         done
     done
     # echo "Successfully generated input file: $xyz_file_path"
-done
+}
+
+START_IDX=${1:-}
+END_IDX=${2:-}
+
+if [[ -n "$START_IDX" && -n "$END_IDX" ]]; then
+    # echo "Processing files from index $START_IDX to $END_IDX"
+    for ((i=10#$START_IDX; i<=10#$END_IDX; i++)); do
+        printf -v filename "dsgdb9nsd_%06d.xyz" "$i"
+        full_path="${xyz_dir}/${filename}"
+        if [[ -f "$full_path" ]]; then
+            process_xyz_file "$full_path"
+        fi
+    done
+else
+    for xyz_file_path in "${xyz_dir}"/*.xyz; do
+        process_xyz_file "$xyz_file_path"
+    done
+fi
 
 echo "All ORCA input files generated. Overall output directory: ${script_dir}"

@@ -15,7 +15,7 @@ from numpy import rint # For hostname in rankfile
 #################################################################################
 # Setup Environment
 #################################################################################
-SOURCE_ROOT = "/lustre1/g/chem_yangjun/u3651388/osv_mp2_ml_gen/orca2pyscf/source_files"
+SOURCE_ROOT = "/lustre1/g/chem_yangjun/u3651388/osv_mp2_ml_gen/orca2pyscf/sources"
 WORK_ROOT = "/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole"
 ORCA_FILES_DIR = os.path.join(WORK_ROOT, "orca_files")
 FINAL_OUT_DIR = os.path.join(WORK_ROOT, "orca_output", "orca_out")
@@ -29,6 +29,7 @@ ORCA_BIN = os.path.join(ORCA_HOME, "bin", "orca")
 # Task settings
 METHODS = ["mp2", "ccsd", "ccsdt"]
 BASIS = "631gs"
+print(f"Configured for methods: {METHODS}, basis: {BASIS}\n")
 #################################################################################
 # Main Loop and Functions
 #################################################################################
@@ -59,26 +60,31 @@ def save_checkpoint(checkpoint, lock=None):
 
 def is_completed(mol_id, method, checkpoint):
     """Check if task is done (out file exists or checkpoint says so)"""
-    mol_dir = os.path.join(SOURCE_ROOT, f"dsgdb9nsd_{mol_id:06d}")
-    out_file = os.path.join(mol_dir, f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.out")
+    job_base = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}"
+    out_file = os.path.join(FINAL_OUT_DIR, f"{job_base}.out")
+    
     if os.path.exists(out_file):
         return True
     return checkpoint.get(str(mol_id), {}).get(method, False)
 
 def copy_inputs_sequentially(start_id, end_id):
-    """Sequential copy 3 inp per molecule"""
+    """Sequential copy 3 inp per molecule from nested structure"""
     copied = 0
     for mol_id in range(start_id, end_id + 1):
-        mol_dir = os.path.join(SOURCE_ROOT, f"dsgdb9nsd_{mol_id:06d}")
-        if not os.path.isdir(mol_dir):
-            continue
         for method in ["mp2", "ccsd", "ccsdt"]:
-            inp = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.inp"
-            src = os.path.join(mol_dir, inp)
-            dst = os.path.join(ORCA_FILES_DIR, inp)
+            inp_filename = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.inp"
+
+            src_dir = os.path.join(SOURCE_ROOT, method, f"{BASIS}_{method}")
+            src = os.path.join(src_dir, inp_filename)
+            dst = os.path.join(ORCA_FILES_DIR, inp_filename)
+            
             if os.path.exists(src):
                 shutil.copy2(src, dst)
                 copied += 1
+            else:
+                # Fallback or silent skip? Printing might be too noisy if many missing
+                pass
+                
     print(f"✓ Copied {copied} input files (sequential)")
     return copied > 0
 # ===============================================================================
@@ -98,23 +104,42 @@ def get_cpu_ranges(total_cores, num_slots):
     return ranges, cores_per_slot
 
 def create_rankfile(slot_idx, cpu_range, nprocs):
-    """Optimized rankfile: bind to exact socket + local cores (Intel 2-socket)"""
+    """
+    Optimized rankfile creation.
+    
+    Configuration Guide for HPC2021 Partitions:
+    -------------------------------------------
+    1. Intel (default): Gold 6226R (2 sockets x 16 cores = 32 cores/node)
+       - CORES_PER_SOCKET = 16
+    
+    2. AMD: EPYC 7542 (2 sockets x 32 cores = 64 cores/node)
+       - CORES_PER_SOCKET = 32
+    
+    3. Hugemem: EPYC 7742 (2 sockets x 64 cores = 128 cores/node)
+       - CORES_PER_SOCKET = 64
+       
+    Current Setting: Hugemem (64 cores/socket)
+    """
+    CORES_PER_SOCKET = 64  # Set to 16 for Intel, 32 for AMD, 64 for Hugemem
+
     hostname = socket.gethostname()
     start = int(cpu_range.split('-')[0])
-    socket_id = start // 16          # 16 cores per socket on your Intel nodes
-    local_start = start % 16
+    
+    # Calculate socket and local core index based on CORES_PER_SOCKET
+    socket_id = start // CORES_PER_SOCKET
+    local_start = start % CORES_PER_SOCKET
 
     rankfile_path = os.path.join(ORCA_FILES_DIR, f"rankfile_slot{slot_idx}.txt")
     with open(rankfile_path, 'w') as f:
         for r in range(nprocs):
-            f.write(f"rank {r}={hostname} slot={socket_id}:{local_start + r}\n")
+            core_on_socket = local_start + r
+            f.write(f"rank {r}={hostname} slot={socket_id}:{core_on_socket}\n")
     return rankfile_path
 # ==============================================================================
 # Main Task Function
 # ==============================================================================
 def run_task(task_info, checkpoint, lock):
     mol_id, method, cpu_range, nprocs, slot_id = task_info
-    mol_dir = os.path.join(SOURCE_ROOT, f"dsgdb9nsd_{mol_id:06d}")
     inp_file = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.inp"
     work_inp = os.path.join(ORCA_FILES_DIR, inp_file)
     job_base = inp_file.replace(".inp", "")

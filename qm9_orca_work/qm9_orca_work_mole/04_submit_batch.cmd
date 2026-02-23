@@ -4,7 +4,7 @@
 #SBATCH --time=15:00:00 # Adjusted for 20 mols (5 waves * 3h)
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=32 # Enough for 4 concurrent * 8 cores
+#SBATCH --cpus-per-task=128 # Enough for 4 concurrent * 8 cores
 #SBATCH --qos=long
 #SBATCH --mem=0    # 32 cores * 4G = 128G + overhead
 

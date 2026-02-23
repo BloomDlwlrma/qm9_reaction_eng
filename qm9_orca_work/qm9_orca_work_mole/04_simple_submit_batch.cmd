@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=qm9_orca_simple
-#SBATCH --partition=amd
-#SBATCH --time=15:00:00
+#SBATCH --partition=hugemem
+#SBATCH --time=7-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=32
+#SBATCH --cpus-per-task=128
 ##SBATCH --qos=hugemem
 #SBATCH --mem=0  # Use all memory on node if exclusive, or set explicitly
 
@@ -16,10 +16,13 @@
 
 # ============================================================================== 
 # QM9 ORCA Batch (No explicit CPU binding)
+# hugemem 128; intel 32 192G; amd 64 256G/ 128 512g/ 192 768G;
 # ============================================================================== 
 START_ID=1
-END_ID=999
-CONCURRENCY=4
+#START_ID=333471
+#START_ID=66942
+END_ID=133885
+CONCURRENCY=16 # Number of concurrent tasks to run (adjust based on workload and resources)
 
 WORK_DIR="/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole"
 LOG_DIR="${WORK_DIR}/orca_rundir_info"
@@ -39,7 +42,6 @@ export ORCA_SKIP_CPU_BIND=1
 
 echo "=== Simple Job ${SLURM_JOB_ID} ==="
 echo "Node: $(hostname), Range: ${START_ID}-${END_ID}, CPUs: ${SLURM_CPUS_PER_TASK}"
-#mail -s "QM9 ORCA Simple Job ${SLURM_JOB_ID} Started on $(hostname)" 1070461445@qq.com <<< "Processing ${START_ID}-${END_ID} without explicit CPU binding."
 
 TIMEFORMAT="Simple chunk ${START_ID}-${END_ID} elapsed=%E user=%U sys=%S"
 { time python run_batch_manager.py "${START_ID}" "${END_ID}" "${CONCURRENCY}"; } \
@@ -47,4 +49,3 @@ TIMEFORMAT="Simple chunk ${START_ID}-${END_ID} elapsed=%E user=%U sys=%S"
 
 COMPLETED_TASKS=$(grep -c "DONE" "${RUN_LOG}" 2>/dev/null || echo 0)
 echo "=== Simple Job ${SLURM_JOB_ID} END (${COMPLETED_TASKS} tasks) ==="
-#mail -s "QM9 ORCA Simple Job ${SLURM_JOB_ID} Completed on $(hostname)" 1070461445@qq.com <<< "Processing ${START_ID}-${END_ID}, ${COMPLETED_TASKS} tasks completed without binding."

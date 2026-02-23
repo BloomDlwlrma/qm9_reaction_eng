@@ -20,7 +20,9 @@ ERROR_PATTERNS=(
 )
 
 # Use SOURCE_ROOT from env or default
-SOURCE_ROOT="${SOURCE_ROOT:-/lustre1/g/chem_yangjun/u3651388/osv_mp2_ml_gen/orca2pyscf/source_files}"
+# SOURCE_ROOT="${SOURCE_ROOT:-/lustre1/g/chem_yangjun/u3651388/osv_mp2_ml_gen/orca2pyscf/sources}"
+SOURCE_ROOT="${SOURCE_ROOT:-/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/orca_output/orca_out}"
+MKL_ROOT="${MKL_ROOT:-/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/orca_output/orca_mkl}"
 ORCA_ERRS_DIR="${WORK_DIR:-$(pwd)}/orca_errs"  # Aggregate errs here
 
 mkdir -p "${ORCA_ERRS_DIR}"
@@ -29,56 +31,54 @@ echo "=== ORCA QM9 Error Cleanup ==="
 echo "Scanning molecule dirs in: ${SOURCE_ROOT}"
 echo ""
 
-# Find all molecule dirs (pattern dsgdb9nsd_*)
-find "${SOURCE_ROOT}" -mindepth 1 -maxdepth 1 -type d -name "dsgdb9nsd_*" | while read -r mol_dir; do
-    mol_name=$(basename "${mol_dir}")
-    echo "Processing molecule: ${mol_name} (${mol_dir})"
-    
-    # Find all .out in this mol dir
-    find "${mol_dir}" -type f -name "*.out" | while read -r outfile; do
-        jobname="${outfile%.out}"
-        inpfile="${jobname}.inp"
-        out_file="${outfile}"
-        errfile="${jobname}.err"
-        
-        if [[ ! -f "${inpfile}" ]]; then
-            # echo "  Warning: No .inp for ${outfile}, skipping"
-            continue
-        fi
-        
-        if [[ -f "${errfile}" ]]; then
-            # echo "  Skipped (has .err): ${jobname}"
-            continue
-        fi
-        
-        has_error=false
-        for pattern in "${ERROR_PATTERNS[@]}"; do
-            if grep -qiE "${pattern}" "${out_file}"; then
-                has_error=true
-                echo "  ERROR: ${jobname} (matched: ${pattern})"
-                break
-            fi
-        done
-        
-        if ${has_error}; then
-            # echo "=== Error Report ===" > "${errfile}"
-            echo "Job: ${jobname}" >> "${errfile}"
-            echo "Date: $(date)" >> "${errfile}"
-            echo "Detected errors:" >> "${errfile}"
-            for pattern in "${ERROR_PATTERNS[@]}"; do
-                if grep -qiE "${pattern}" "${out_file}"; then
-                    echo "  - ${pattern}" >> "${errfile}"
-                fi
-            done
-            echo "Last 25 lines:" >> "${errfile}"
-            tail -n 25 "${out_file}" >> "${errfile}"
+find "${SOURCE_ROOT}" -type f -name "*.out" | while read -r out_file; do
+    job_base=$(basename "${out_file}" .out)
+    mol_id=$(echo "${job_base}" | cut -d'_' -f1-2)
+    err_file="${ORCA_ERRS_DIR}/${mol_id}_${job_base}.err"
+    mkl_file="${MKL_ROOT}/${job_base}.mkl"
+    # echo "Processing job: ${job_base}"
 
-            rm -vf "${jobname}".!(inp|out|err) 2>/dev/null
-            mv "${out_file}" "${ORCA_ERRS_DIR}/${mol_name}_${jobname##*/}.out"
-            mv "${errfile}" "${ORCA_ERRS_DIR}/${mol_name}_${jobname##*/}.err"
-            echo "  → Cleanup done"
+    if [[ -f "${err_file}" ]]; then
+        echo "  Skipped (already processed): ${job_base}"
+        continue
+    fi
+
+    has_error=false
+    matched_patterns=()
+    for pattern in "${ERROR_PATTERNS[@]}"; do
+        if grep -qiE "${pattern}" "${out_file}"; then
+            has_error=true
+            matched_patterns+=("${pattern}")
+            echo "  ERROR: ${job_base} (matched: ${pattern})"
         fi
     done
+
+    if ${has_error}; then
+        {
+            echo "Job: ${job_base}"
+            echo "Date: $(date)"
+            echo "Detected errors:"
+            for p in "${matched_patterns[@]}"; do
+                echo "  - ${p}"
+            done
+            echo "Last 25 lines of output:"
+            tail -n 25 "${out_file}"
+        } > "${err_file}"
+
+        if [[ -f "${mkl_file}" ]]; then
+            echo "  remove err task mkl: ${mkl_file}"
+            rm -vf "${mkl_file}"
+        else
+            echo "  relative err mkl file is not reserve: ${job_base}.mkl"
+        fi
+
+        echo "  Cleaning temp files for ${job_base}..."
+        rm -vf "${ORCA_FILES_DIR}/${job_base}".!(inp) 2>/dev/null
+
+        mv -v "${out_file}" "${ORCA_ERRS_DIR}/${mol_id}_${job_base}.out"
+
+        echo "  → Cleanup done for ${job_base}"
+    fi
 done
 
-echo "Cleanup finished. Failed jobs in ${ORCA_ERRS_DIR}."
+echo "Cleanup finished. Failed jobs moved to: ${ORCA_ERRS_DIR}."

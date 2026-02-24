@@ -48,7 +48,8 @@ cd ${WORK_DIR}
 #################################################################################
 # Main Loop
 #################################################################################
-python run_batch_manager.py ${START_ID} ${END_ID} 4
+TIMEFORMAT="Simple chunk ${START_ID}-${END_ID} elapsed=%E user=%U sys=%S"
+time python run_batch_manager.py "${START_ID}" "${END_ID}" "${CONCURRENCY}" "${BASIS}" "${METHODS}"
 
 COMPLETED_TASKS=$(grep -c "DONE" batch_${SLURM_JOB_ID}_${SLURM_ARRAY_TASK_ID}.out 2>/dev/null || echo 0)
 echo "=== Job ${SLURM_JOB_ID} Array ${SLURM_ARRAY_TASK_ID} END (${COMPLETED_TASKS} tasks) ==="

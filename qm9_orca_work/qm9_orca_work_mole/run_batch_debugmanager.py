@@ -15,10 +15,9 @@ import socket
 #################################################################################
 SOURCE_ROOT = "/lustre1/g/chem_yangjun/u3651388/osv_mp2_ml_gen/orca2pyscf/sources"
 WORK_ROOT = "/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole"
-ORCA_FILES_DIR = os.path.join(WORK_ROOT, "orca_files")
-FINAL_OUT_DIR = os.path.join(WORK_ROOT, "orca_output", "orca_out")
-FINAL_MKL_DIR = os.path.join(WORK_ROOT, "orca_output", "orca_mkl")
-CHECKPOINT_FILE = os.path.join(WORK_ROOT, "checkpoint.json")
+ORCA_FILES_DIR = os.path.join(WORK_ROOT, "orca_files_debug")
+FINAL_OUT_DIR = os.path.join(WORK_ROOT, "orca_output_debug", "orca_out")
+FINAL_MKL_DIR = os.path.join(WORK_ROOT, "orca_output_debug", "orca_mkl")
 
 # Select ORCA Version 
 ORCA_HOME = "/lustre1/g/chem_yangjun/orca6.1.0/orca-6.1.0-f.0_linux_x86-64"
@@ -34,7 +33,7 @@ def ensure_dirs():
     '''
     for d in [ORCA_FILES_DIR, FINAL_OUT_DIR, FINAL_MKL_DIR]:
         os.makedirs(d, exist_ok=True)
-    os.makedirs(os.path.join(WORK_ROOT, "checkpoints"), exist_ok=True)
+    os.makedirs(os.path.join(WORK_ROOT, "checkpoints_debug"), exist_ok=True)
 
 # ===============================================================================
 # Checkpointing Functions (Optional)
@@ -42,7 +41,7 @@ def ensure_dirs():
 def init_checkpoint_file():
     global CHECKPOINT_FILE
     methods_str = "_".join(METHODS)
-    CHECKPOINT_FILE = os.path.join(WORK_ROOT, "checkpoints", f"checkpoint_{BASIS}_{methods_str}.json")
+    CHECKPOINT_FILE = os.path.join(WORK_ROOT, "checkpoints_debug", f"checkpoint_{BASIS}_{methods_str}.json")
     print(f"[INFO] Checkpoint file: {CHECKPOINT_FILE}")
 
 def load_checkpoint():
@@ -186,35 +185,33 @@ def get_cpu_ranges(total_cores, num_slots):
 
 def create_rankfile(slot_idx, cpu_range, nprocs):
     """
-    Optimized rankfile creation.
-    
-    Configuration Guide for HPC2021 Partitions:
-    -------------------------------------------
-    1. Intel (default): Gold 6226R (2 sockets x 16 cores = 32 cores/node)
-       - CORES_PER_SOCKET = 16
-    
-    2. AMD: EPYC 7542 (2 sockets x 32 cores = 64 cores/node)
-       - CORES_PER_SOCKET = 32
-    
-    3. Hugemem: EPYC 7742 (2 sockets x 64 cores = 128 cores/node)
-       - CORES_PER_SOCKET = 64
-       
-    Current Setting: Hugemem (64 cores/socket)
+    Optimized rankfile creation. CORES_PER_SOCKET is read from SLURM script environment variable.
     """
-    CORES_PER_SOCKET = 16  # Set to 16 for Intel, 32 for AMD, 64 for Hugemem
+    # Read from environment variable, default to 16 (Intel) if not set
+    cores_per_socket_str = os.environ.get("CORES_PER_SOCKET", "16")
+    try:
+        CORES_PER_SOCKET = int(cores_per_socket_str)
+    except ValueError:
+        CORES_PER_SOCKET = 16
+        print(f"Warning: CORES_PER_SOCKET environment variable invalid ('{cores_per_socket_str}'), using default value 16")
 
     hostname = socket.gethostname()
     start = int(cpu_range.split('-')[0])
     
-    # Calculate socket and local core index based on CORES_PER_SOCKET
+    # Calculate socket_id and starting core within socket
     socket_id = start // CORES_PER_SOCKET
     local_start = start % CORES_PER_SOCKET
 
     rankfile_path = os.path.join(ORCA_FILES_DIR, f"rankfile_slot{slot_idx}.txt")
+    
+    print(f"[Rankfile] Creating {rankfile_path} | socket={socket_id}, local_start={local_start}, nprocs={nprocs}, CORES_PER_SOCKET={CORES_PER_SOCKET}")
+    
     with open(rankfile_path, 'w') as f:
         for r in range(nprocs):
             core_on_socket = local_start + r
+            # Standard OpenMPI rankfile format
             f.write(f"rank {r}={hostname} slot={socket_id}:{core_on_socket}\n")
+    
     return rankfile_path
 
 # ==============================================================================

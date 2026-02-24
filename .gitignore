@@ -24,6 +24,12 @@ qm9_orca_work/qm9_orca_work_mole/orca_files
 qm9_orca_work/qm9_orca_work_mole/orca_errs
 qm9_orca_work/qm9_orca_work_mole/orca_rundir_info
 qm9_orca_work/qm9_orca_work_mole/orca_output
+qm9_orca_work/qm9_orca_work_mole/checkpoints
+qm9_orca_work/qm9_orca_work_mole/orca_files_debug
+qm9_orca_work/qm9_orca_work_mole/orca_errs_debug
+qm9_orca_work/qm9_orca_work_mole/orca_rundir_info_debug
+qm9_orca_work/qm9_orca_work_mole/orca_output_debug
+qm9_orca_work/qm9_orca_work_mole/checkpoints_debug
 
 # XYZ files
 qm9_xyz_files/

@@ -10,7 +10,7 @@
 #SBATCH --mail-type=END,FAIL
 ##SBATCH --mail-user=your@email
 ##SBATCH --partition=intel
-#SBATCH --time=02:00:00
+#SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
@@ -29,8 +29,8 @@ declare -A METHOD_MAP=(
     ["CCSD(T)"]="DLPNO-CCSD(T)"
 )
 declare -A BASIS_MAP=(
-    # ["631g"]="6-31G"
-    ["631gs"]="6-31G*"
+    ["631g"]="6-31G"
+    # ["631gs"]="6-31G*"
     # ["631gss"]="6-31G**"
     # ["631+gss"]="6-31+G**"
     # ["def2svp"]="def2-SVP"
@@ -41,7 +41,7 @@ declare -A BASIS_MAP=(
     # ["321g"]="3-21G"
 )
 # BASIS_SETS=("631g" "631gs" "631gss" "631+gss" "def2svp" "def2tzvp" "ccpvdz" "ccpvtz" "aug-ccpvtz" "321g")
-BASIS_SETS=("631gs")
+BASIS_SETS=("631g")
 echo -e "Generating ORCA input files for single element atoms: basis: ${BASIS_SETS[*]}, methods: ${METHODS[*]}"
 
 xyz_dir="/lustre1/g/chem_yangjun/u3651388/osv_mp2_ml_gen/orca2pyscf/xyz_files"
@@ -98,8 +98,13 @@ process_xyz_file() {
 
             infile="${basis_method_dir}/${mole_lc}_${method_lc}_${basis_key}.inp"
 
-            if [ ! -f "${infile}" ]; then
-                cat > "${infile}" << EOF
+            if [[ -f "${infile}" ]]; then
+                ((skip_count++))
+                echo "Info: File ${infile} already exists, skip (total skipped: ${skip_count})"
+                continue  
+            fi
+            
+            cat > "${infile}" << EOF
 ! ${orca_method} ${basis_name} ${aux_basis}
 ${ORCA_MEM}
 %mdci
@@ -112,14 +117,14 @@ OCC true
 end
 *xyzfile 0 1 ${xyz_file_path}
 EOF
-                if [[ -f "${infile}" ]]; then
-                    ((file_count++))
-                    if (( file_count % 5000 == 0 )); then
-                        echo "[$(date)] Generated ${file_count} input files"
-                    fi
-                else
-                    echo "Error: Failed to generate ${infile}"
+            if [[ -f "${infile}" ]]; then
+                ((file_count++))
+                echo "Success: Generated ${infile} (total generated: ${file_count})"
+                if (( file_count % 5000 == 0 )); then
+                    echo "[$(date)] Generated ${file_count} input files (skipped ${skip_count} existing files)"
                 fi
+            else
+                echo "Error: Failed to generate ${infile}"
             fi
         done
     done
@@ -163,4 +168,5 @@ fi
 echo "=== Final Summary ==="
 echo "Total XYZ files: ${total_xyz}"
 echo "Total input files generated: ${file_count}"
+echo "Total existing files skipped: ${skip_count}"
 echo "Output directory: ${script_dir}"

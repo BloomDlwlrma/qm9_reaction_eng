@@ -2,7 +2,7 @@
 src/csv/
 *.csv
 !requirements.txt
-
+*.txt
 # PNG files
 src/png/
 *.png

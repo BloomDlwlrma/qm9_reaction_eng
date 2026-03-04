@@ -6,17 +6,30 @@
 shopt -s extglob nullglob
 ERROR_PATTERNS=(
     "aborting the run"
-    "Error termination"
-    "The MDCI module"
+    "abnormal termination"
+    "aborted"
+    "the job aborted"
+    "killed"
+    "segfault"
+    "segmentation fault"
+    "mpirun detected"
+    "out of memory"
+    "execution failed"
+    "error termination"
+    "the mdci module"
     "mdci_state.cpp"
     "orca_mdci_mpi"
     "not enough slots"
-    "There are not enough slots available"
+    "there are not enough slots available"
     "illegal state"
-    "Segmentation fault"
-    "Signal: Aborted"
-    "*** Process.*received signal"
-    "Primary job .* non-zero exit code"
+    "signal: aborted"
+    "received signal"
+    "\*\*\* Process.*received signal"
+    "primary job .* non-zero exit code"
+    "non-zero exit code"
+    "primary job"
+    "End of error message"
+    "Invalid argument"
 )
 
 # Use SOURCE_ROOT from env or default
@@ -26,10 +39,6 @@ MKL_ROOT="${MKL_ROOT:-/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_wo
 ORCA_ERRS_DIR="${WORK_DIR:-$(pwd)}/orca_errs"  # Aggregate errs here
 
 mkdir -p "${ORCA_ERRS_DIR}"
-
-echo "=== ORCA QM9 Error Cleanup ==="
-echo "Scanning molecule dirs in: ${SOURCE_ROOT}"
-echo ""
 
 find "${SOURCE_ROOT}" -type f -name "*.out" | while read -r out_file; do
     job_base=$(basename "${out_file}" .out)
@@ -55,9 +64,6 @@ find "${SOURCE_ROOT}" -type f -name "*.out" | while read -r out_file; do
 
     if ${has_error}; then
         {
-            echo "Job: ${job_base}"
-            echo "Date: $(date)"
-            echo "Detected errors:"
             for p in "${matched_patterns[@]}"; do
                 echo "  - ${p}"
             done
@@ -66,17 +72,13 @@ find "${SOURCE_ROOT}" -type f -name "*.out" | while read -r out_file; do
         } > "${err_file}"
 
         if [[ -f "${mkl_file}" ]]; then
-            echo "  remove err task mkl: ${mkl_file}"
             rm -vf "${mkl_file}"
         else
             echo "  relative err mkl file is not reserve: ${job_base}.mkl"
         fi
 
-        echo "  Cleaning temp files for ${job_base}..."
         rm -vf "${ORCA_FILES_DIR}/${job_base}".!(inp) 2>/dev/null
-
-        mv -v "${out_file}" "${ORCA_ERRS_DIR}/${mol_id}_${job_base}.out"
-
+        # mv -v "${out_file}" "${ORCA_ERRS_DIR}/${mol_id}_${job_base}.out"
         echo "  → Cleanup done for ${job_base}"
     fi
 done

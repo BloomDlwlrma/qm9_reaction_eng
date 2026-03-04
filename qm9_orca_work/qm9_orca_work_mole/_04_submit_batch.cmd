@@ -7,12 +7,9 @@
 #SBATCH --cpus-per-task=128 # Enough for 4 concurrent * 8 cores
 #SBATCH --qos=long
 #SBATCH --mem=0    # 32 cores * 4G = 128G + overhead
-
 #SBATCH --output=/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/orca_rundir_info/batch_%A_%a.out
 #SBATCH --error=/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/orca_rundir_info/batch_%A_%a.err
 #SBATCH --array=0-49 # 50 jobs * 20 = 1000 molecules
-#SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=1070461445@qq.com
 
 # ==============================================================================
 # QM9 ORCA Batch (Optimized for your cluster)

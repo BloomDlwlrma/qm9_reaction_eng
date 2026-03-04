@@ -1,87 +1,105 @@
 #!/bin/bash
+#SBATCH --job-name=AutoSubmitter
+#SBATCH --partition=intel  
+#SBATCH --qos=long              
+#SBATCH --time=14-00:00:00      
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1       
+#SBATCH --mem=1G                
+#SBATCH --output=monitor_%j.log 
 
 # ==============================================================================
 # Automated submission monitoring script
-# Function: Check if specified jobs are in the queue; if not, resubmit them automatically
-# nohup ./00_keep_alive.cmd > keep_alive.log 2>&1 &
+# This script runs on a compute node to prevent login node freezing.
 # ==============================================================================
 
-# Define log file
+# 1. Define log file
 LOG_FILE="auto_submitter.log"
 
-# Define tasks to monitor (format: "JobName:ScriptPath")
-# Note: JobName must match the #SBATCH --job-name in your .slurm script
+# 2. Define Base Directory (Ensure this path is correct!)
 BASE_DIR="/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole"
+
+# 3. Define tasks to monitor (Format: "JobName:ScriptPath")
+# IMPORTANT: The JobName here MUST match the #SBATCH --job-name in your actual scripts.
 TASKS=(
-    "QM9_Intel:$BASE_DIR/04_final_intelbatch.cmd"
-    "QM9_AMD_Even:$BASE_DIR/04_final_amdbatch.cmd"
-    "QM9_Condo_Odd:$BASE_DIR/04_final_condoamdbatch.cmd"
+    "QM9_Intel:${BASE_DIR}/04_final_intelbatch.cmd"
+    "QM9_AMD_Even:${BASE_DIR}/04_final_amdbatch.cmd"
+    "QM9_Condo_Odd:${BASE_DIR}/04_final_condoamdbatch.cmd"
 )
 
 # Helper function: log messages
 log_msg() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
+    # Print to stdout (for .out file) AND append to log file
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
 }
 
 # Ensure log file exists
 touch "$LOG_FILE"
 
-log_msg "=== Daemon started (PID: $$) ==="
+log_msg "=== Monitor Daemon Started on Node $(hostname) (Job ID: $SLURM_JOB_ID) ==="
 log_msg "Monitored tasks: ${#TASKS[@]} tasks"
+
+# Verify scripts exist before starting loop
 for task in "${TASKS[@]}"; do
-    log_msg "  - ${task%%:*} -> ${task##*:}"
+    SCRIPT="${task##*:}"
+    if [ ! -f "$SCRIPT" ]; then
+        log_msg "CRITICAL ERROR: Script not found: $SCRIPT"
+        # Optional: exit if scripts are missing, or just warn
+    else
+        log_msg "  - Found: ${task%%:*} -> $SCRIPT"
+    fi
 done
 echo "---------------------------------------------------"
 
+# Start Infinite Loop
 while true; do
     log_msg "Checking queue status..."
 
-    # Get all current user's jobs (only JobName to reduce data)
-    # Use squeue --me --format="%.200j" to list job names
+    # Get all current user's jobs
     CURRENT_JOBS=$(squeue --me --format="%.200j" --noheader 2>/dev/null)
 
-    # Check whether squeue executed successfully
+    # Check execution status
     if [ $? -ne 0 ]; then
-        log_msg "Warning: squeue command failed, skipping this check."
-        sleep 60
+        log_msg "Warning: squeue command failed, retrying in 0.5h..."
+        sleep 1800
         continue
     fi
 
-    # Iterate over each task for checking
+    # Iterate over tasks
     for entry in "${TASKS[@]}"; do
         JOB_NAME="${entry%%:*}"
         SCRIPT="${entry##*:}"
 
-        # Check if script file exists
+        # Double check script existence inside loop (in case you edit/move them)
         if [ ! -f "$SCRIPT" ]; then
-            log_msg "Error: Script file $SCRIPT not found, skipping."
+            log_msg "Error: Script file $SCRIPT missing, skipping."
             continue
         fi
 
-        # Check if job is in the queue (exact match)
-        # grep -q: quiet mode; -F: fixed string; -x: whole line match (not used here because squeue output may contain spaces)
+        # Check if job is in the queue
         if echo "$CURRENT_JOBS" | grep -F -q "$JOB_NAME"; then
-            # Job exists, print a short status
+            # Found in queue
             echo "[$(date '+%H:%M:%S')] [RUNNING] $JOB_NAME"
         else
-            # Job not found; need to resubmit
-            log_msg "[Stopped] Task '$JOB_NAME' is not in the queue. Preparing to resubmit..."
+            # Not found -> Resubmit
+            log_msg "[STOPPED] Task '$JOB_NAME' is not in queue. Resubmitting..."
             
-            # Submit job
+            # Run sbatch
             SUBMIT_OUT=$(sbatch "$SCRIPT" 2>&1)
-            RET_CODE=$?
-
-            if [ $RET_CODE -eq 0 ]; then
-                # Extract Job ID (sbatch output usually contains "Submitted batch job 123456")
-                JOB_ID=$(echo "$SUBMIT_OUT" | awk '{print $NF}')
-                log_msg "[SUCCESS] Resubmitted $JOB_NAME (Job ID: $JOB_ID)"
+            
+            if [ $? -eq 0 ]; then
+                # Extract Job ID
+                NEW_JOB_ID=$(echo "$SUBMIT_OUT" | awk '{print $NF}')
+                log_msg "[SUCCESS] Resubmitted $JOB_NAME (New Job ID: $NEW_JOB_ID)"
             else
-                log_msg "[FAILED] Submission of $JOB_NAME failed! Error: $SUBMIT_OUT"
+                log_msg "[FAILED] Could not submit $JOB_NAME. Error: $SUBMIT_OUT"
             fi
         fi
     done
 
-    log_msg "Check complete. Sleeping 3 hours (7200s)..."
+    log_msg "Check complete. Sleeping 2 hours (7200s)..."
     echo "---------------------------------------------------"
+    
+    # Sleep for 2 hours
     sleep 7200
 done

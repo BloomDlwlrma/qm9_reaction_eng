@@ -2,11 +2,11 @@
 #SBATCH --job-name=QM9_Intel
 #SBATCH --partition=intel
 #SBATCH --qos=normal
-#SBATCH --time=24:00:00
+#SBATCH --time=7-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=180G
+#SBATCH --mem=96G
 #SBATCH --output=./logs/intel_%a_%j.out
 #SBATCH --error=./logs/intel_%a_%j.err
 #SBATCH --array=0-3

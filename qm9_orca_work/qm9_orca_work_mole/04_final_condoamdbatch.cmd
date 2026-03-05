@@ -6,7 +6,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=128
-#SBATCH --mem=480G
+#SBATCH --mem=384G
 #SBATCH --output=./logs/condo_odd_%a_%j.out
 #SBATCH --error=./logs/condo_odd_%a_%j.err
 #SBATCH --array=0-13

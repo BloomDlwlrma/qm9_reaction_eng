@@ -2,11 +2,11 @@
 #SBATCH --job-name=QM9_AMD_Even
 #SBATCH --partition=amd
 #SBATCH --qos=normal
-#SBATCH --time=24:00:00
+#SBATCH --time=7-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=128
-#SBATCH --mem=480G
+#SBATCH --mem=384G
 #SBATCH --output=./logs/amd_even_%a_%j.out
 #SBATCH --error=./logs/amd_even_%a_%j.err
 #SBATCH --array=0-13

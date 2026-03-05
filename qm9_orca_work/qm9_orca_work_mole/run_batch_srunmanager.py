@@ -9,7 +9,8 @@ import argparse
 import logging
 import sqlite3
 import re
-import socket
+import time
+import queue # Import queue for thread-safe/process-safe communication
 
 # ==============================================================================
 # Logger & Config
@@ -27,7 +28,7 @@ parser.add_argument("concurrency", type=int)
 parser.add_argument("basis", type=str)
 parser.add_argument("methods", type=str)
 parser.add_argument("--work-subdir", type=str, required=True, 
-                    help="Fixed path for this chunk to allow resume")
+                    help="Fixed path for this chunk")
 
 args = parser.parse_args()
 
@@ -39,7 +40,39 @@ METHODS     = args.methods.split(',')
 WORK_SUBDIR = args.work_subdir
 
 # =============================================================================
-# Setup Environment
+# Error Patterns
+# =============================================================================
+ERROR_PATTERNS = [
+    "aborting the run",
+    "abnormal termination",
+    "aborted",
+    "the job aborted",
+    "killed",
+    "segfault",
+    "segmentation fault",
+    "mpirun detected",
+    "out of memory",
+    "execution failed",
+    "error termination",
+    "the mdci module",
+    "mdci_state.cpp",
+    "orca_mdci_mpi",
+    "not enough slots",
+    "there are not enough slots available",
+    "illegal state",
+    "signal: aborted",
+    "received signal",
+    r"\*\*\* Process.*received signal",
+    r"primary job .* non-zero exit code",
+    "non-zero exit code",
+    "primary job",
+    "End of error message",
+    "Invalid argument"
+]
+COMPILED_ERRORS = [re.compile(p, re.IGNORECASE) for p in ERROR_PATTERNS]
+
+# =============================================================================
+# Setup Environment & Paths
 # =============================================================================
 WORK_ROOT = "/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole"
 ORCA_FILES_BASE = os.path.join(WORK_SUBDIR, "orca_files")
@@ -47,18 +80,29 @@ methods_str = '_'.join(sorted(METHODS))
 
 FINAL_OUT_DIR = os.path.join(WORK_ROOT, "orca_output", f"orca_out_{methods_str}_{BASIS}")
 FINAL_MKL_DIR = os.path.join(WORK_ROOT, "orca_output", f"orca_mkl_{methods_str}_{BASIS}")
-DB_FILE = os.path.join(WORK_ROOT, "checkpoints", f"checkpoint_{BASIS}_{methods_str}.db")
+FAILED_LOG_DIR = os.path.join(WORK_ROOT, "orca_output", "failed_logs")
+
+DB_PARENT_DIR = os.path.join(WORK_ROOT, "checkpoints", f"checkpoint_{BASIS}_{methods_str}")
+DB_FILE = os.path.join(DB_PARENT_DIR, f"run_chunk_{START_ID}_{END_ID}.db")
 
 ORCA_HOME = "/lustre1/g/chem_yangjun/orca6.1.0/orca-6.1.0-f.0_linux_x86-64"
 ORCA_BIN  = os.path.join(ORCA_HOME, "bin", "orca")
 SOURCE_ROOT = "/lustre1/g/chem_yangjun/u3651388/osv_mp2_ml_gen/orca2pyscf/sources"
 
 # ==============================================================================
-# Database & Helper Functions
+# Helper Functions
 # ==============================================================================
-def init_db():
-    os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
-    conn = sqlite3.connect(DB_FILE)
+def init_dirs_and_db():
+    os.makedirs(ORCA_FILES_BASE, exist_ok=True)
+    os.makedirs(FINAL_OUT_DIR, exist_ok=True)
+    os.makedirs(FINAL_MKL_DIR, exist_ok=True)
+    os.makedirs(FAILED_LOG_DIR, exist_ok=True)
+    os.makedirs(DB_PARENT_DIR, exist_ok=True)
+    
+    for i in range(CONCURRENCY):
+        os.makedirs(get_slot_dir(i), exist_ok=True)
+
+    conn = sqlite3.connect(DB_FILE, timeout=60.0)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS completed (
             mol_id TEXT, method TEXT, done INTEGER DEFAULT 1,
@@ -67,43 +111,43 @@ def init_db():
     conn.close()
 
 def is_completed(mol_id, method):
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT 1 FROM completed WHERE mol_id=? AND method=?", (str(mol_id), method))
-    res = c.fetchone()
-    conn.close()
-    return res is not None
+    try:
+        conn = sqlite3.connect(DB_FILE, timeout=60.0)
+        c = conn.cursor()
+        c.execute("SELECT 1 FROM completed WHERE mol_id=? AND method=?", (str(mol_id), method))
+        res = c.fetchone()
+        conn.close()
+        return res is not None
+    except:
+        return False
 
 def mark_completed(mol_id, method):
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("INSERT OR REPLACE INTO completed (mol_id, method, done) VALUES (?, ?, 1)", (str(mol_id), method))
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_FILE, timeout=60.0)
+        c = conn.cursor()
+        c.execute("INSERT OR REPLACE INTO completed (mol_id, method, done) VALUES (?, ?, 1)", (str(mol_id), method))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[DB Error] {mol_id}: {e}")
 
-def parse_inp_filename(filename):
-    base = os.path.basename(filename)
-    if not base.startswith("dsgdb9nsd_") or not base.endswith(".inp"): return None
-    parts = base[:-4].split('_')
-    if len(parts) != 4: return None
-    try: return int(parts[1]), parts[2]
-    except: return None
+def check_file_for_errors(filepath):
+    if not os.path.exists(filepath) or os.path.getsize(filepath) == 0:
+        return True 
+    try:
+        with open(filepath, 'r', errors='ignore') as f:
+            content = f.read()
+        for pattern in COMPILED_ERRORS:
+            if pattern.search(content):
+                return True 
+        return False 
+    except Exception:
+        return True
 
 def get_slot_dir(slot_id):
     return os.path.join(ORCA_FILES_BASE, f"slot_{slot_id}")
 
-def ensure_dirs():
-    os.makedirs(ORCA_FILES_BASE, exist_ok=True)
-    os.makedirs(FINAL_OUT_DIR, exist_ok=True)
-    os.makedirs(FINAL_MKL_DIR, exist_ok=True)
-    for i in range(CONCURRENCY):
-        os.makedirs(get_slot_dir(i), exist_ok=True)
-
-# ==============================================================================
-# SPE Restart Logic (不改坐标，只读波函数)
-# ==============================================================================
-def prepare_spe_restart_input(original_inp, restart_gbw_name):
-    """保留 xyzfile，只插入 MOREAD 和 %moinp"""
+def prepare_spe_restart_input(original_inp, restart_gbw_filename):
     with open(original_inp, 'r') as f:
         lines = f.readlines()
     
@@ -112,12 +156,13 @@ def prepare_spe_restart_input(original_inp, restart_gbw_name):
     
     for line in lines:
         stripped = line.strip()
-        # 处理 ! 行
         if stripped.startswith('!') and not header_processed:
             clean_line = re.sub(r'\s+MOREAD', '', line, flags=re.IGNORECASE).strip()
             new_lines.append(f"{clean_line} MOREAD\n")
-            new_lines.append(f'%moinp "{restart_gbw_name}"\n')
+            new_lines.append(f'%moinp "{restart_gbw_filename}"\n')
             header_processed = True
+        elif "%moinp" in line.lower():
+            continue
         else:
             new_lines.append(line)
             
@@ -127,173 +172,233 @@ def prepare_spe_restart_input(original_inp, restart_gbw_name):
 # ==============================================================================
 # Task Execution
 # ==============================================================================
-def copy_inputs():
-    slot_counter = 0
-    copied = 0
-    print(f"[Setup] Scanning tasks {START_ID}-{END_ID}...")
-    for mol_id in range(START_ID, END_ID + 1):
-        for method in METHODS:
-            if is_completed(mol_id, method): continue
-            
-            inp_file = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.inp"
-            src_path = os.path.join(SOURCE_ROOT, method, f"{BASIS}_{method}", inp_file)
-            
-            if not os.path.exists(src_path): continue
-            
-            slot_id = slot_counter % CONCURRENCY
-            slot_counter += 1
-            dst_path = os.path.join(get_slot_dir(slot_id), inp_file)
-            
-            if not os.path.exists(dst_path) or os.path.getsize(dst_path) == 0:
-                shutil.copy2(src_path, dst_path)
-                copied += 1
-    print(f"[Setup] Distributed {copied} input files to {CONCURRENCY} slots.")
-
 def run_task(task_info, slot_dir, lock):
-    mol_id, method, cpu_range, nprocs, slot_id = task_info
-    inp_name = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.inp"
-    work_inp = os.path.join(slot_dir, inp_name)
-    job_base = inp_name.replace(".inp", "")
+    # Unpack task info
+    mol_id, method, nprocs, slot_id = task_info
     
-    # 关键文件路径
+    # Define file names
+    inp_file_name = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}.inp"
+    src_path = os.path.join(SOURCE_ROOT, method, f"{BASIS}_{method}", inp_file_name)
+    
+    # We copy input file ON DEMAND here, inside the worker
+    # This prevents the "Distributed 0 files" error and ensures fresh inputs
+    if not os.path.exists(src_path):
+        print(f"[Slot {slot_id}] Source not found: {src_path}")
+        return
+
+    work_inp = os.path.join(slot_dir, inp_file_name)
+    shutil.copy2(src_path, work_inp)
+
+    job_base = inp_file_name.replace(".inp", "")
     current_out = os.path.join(slot_dir, f"{job_base}.out")
     current_gbw = os.path.join(slot_dir, f"{job_base}.gbw")
-    restart_gbw = os.path.join(slot_dir, "temp_restart.gbw")
+    mkl_path    = os.path.join(slot_dir, f"{job_base}.mkl")
+    
+    # Unique restart name
+    restart_gbw_name = f"{job_base}_restart.gbw"
+    restart_gbw      = os.path.join(slot_dir, restart_gbw_name)
     
     prefix = f"[Slot {slot_id}|{mol_id}]"
 
-    # --- 1. 检查断点 (Resume) ---
+    # --- 1. Resume Check (Pre-run) ---
     is_restart = False
-    if os.path.exists(current_gbw):
-        print(f"{prefix} Found previous .gbw. Configuring SPE restart.")
+    if os.path.exists(restart_gbw):
+        print(f"{prefix} Found valid restart GBW. Configuring input.")
         try:
-            shutil.move(current_gbw, restart_gbw)
-            prepare_spe_restart_input(work_inp, "temp_restart.gbw")
+            prepare_spe_restart_input(work_inp, restart_gbw_name)
             is_restart = True
         except Exception as e:
             print(f"{prefix} Restart prep failed: {e}. Starting fresh.")
             if os.path.exists(restart_gbw): os.remove(restart_gbw)
 
-    # --- 2. 清理临时文件 (保留 inp 和 restart.gbw) ---
+    # --- 2. Clean Temp Files ---
     for f in glob.glob(os.path.join(slot_dir, f"{job_base}*")):
         abs_f = os.path.abspath(f)
-        if abs_f == os.path.abspath(work_inp): continue
-        if is_restart and os.path.basename(f) == "temp_restart.gbw": continue
+        if abs_f == os.path.abspath(work_inp): continue 
+        if abs_f == os.path.abspath(restart_gbw): continue 
         try: os.remove(f)
         except: pass
 
-    if not os.path.exists(work_inp): return
-
-    # --- 3. 设置 %pal ---
+    # --- 3. Set %pal ---
     with open(work_inp, 'r') as f: lines = f.readlines()
     with open(work_inp, 'w') as f:
         f.write(f"%pal nprocs {nprocs} end\n")
         for line in lines:
             if "%pal" not in line.lower(): f.write(line)
 
-    # --- 4. 运行 ORCA ---
+    # --- 4. Run ORCA ---
     env = os.environ.copy()
     env["PATH"] = f"{ORCA_HOME}/bin:{env.get('PATH','')}"
     env["LD_LIBRARY_PATH"] = f"{ORCA_HOME}/lib:{env.get('LD_LIBRARY_PATH','')}"
     env["OMPI_MCA_rmaps_base_oversubscribe"] = "true"
 
-    # 使用 timeout 防止卡死，留 1 小时给 SLURM 清理
-    
-    skip_binding = os.environ.get("ORCA_SKIP_CPU_BIND", "0") == "1"
-    if skip_binding:
-        # 不使用 rankfile，直接依靠 OS 或 taskset
-        cmd = ["taskset", "-c", cpu_range, "timeout", "23h", ORCA_BIN, work_inp]
+    # NO CPU BINDING to allow OS scheduler to optimize utilization
+    cmd = [ORCA_BIN, work_inp]
 
     try:
         with open(current_out, "w") as outf:
-            subprocess.run(cmd, stdout=outf, stderr=subprocess.STDOUT, env=env)
+            # Shorten timeout slightly to allow cleanup before SLURM kills it? 
+            # Actually 23h is fine if SLURM job is 24h. 
+            subprocess.run(cmd, stdout=outf, stderr=subprocess.STDOUT, env=env, timeout=166*3600) # 7 days is 168h
+    except subprocess.TimeoutExpired:
+        print(f"{prefix} Timeout detected.")
+        pass 
     except Exception as e:
         print(f"{prefix} Exec Error: {e}")
         return
 
-    # --- 5. 结果处理 ---
-    # 生成 mkl
-    gbw_path = os.path.join(slot_dir, f"{job_base}.gbw")
-    if os.path.exists(gbw_path):
-        subprocess.run(["orca_2mkl", job_base, "-mkl"], cwd=slot_dir, env=env,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # --- 5. Post-process (MKL) ---
+    if os.path.exists(current_gbw):
+        try:
+            subprocess.run(["orca_2mkl", job_base, "-mkl"], cwd=slot_dir, env=env,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except: pass
 
-    mkl_path = os.path.join(slot_dir, f"{job_base}.mkl")
-    
-    # 验证是否成功 (检查输出文件尾部)
-    success = False
-    if os.path.exists(current_out) and os.path.exists(mkl_path):
+    # --- 6. Status Check ---
+    is_success = False
+    if os.path.exists(current_out):
         try:
             with open(current_out, 'rb') as f:
                 f.seek(-2048, 2)
                 tail = f.read().decode(errors='ignore')
             if "ORCA TERMINATED NORMALLY" in tail:
-                success = True
+                is_success = True
         except: pass
+    
+    has_explicit_error = check_file_for_errors(current_out)
 
-    if success:
+    # --- 7. Cleanup Logic ---
+
+    if is_success:
         shutil.copy2(current_out, os.path.join(FINAL_OUT_DIR, f"{job_base}.out"))
-        shutil.copy2(mkl_path, os.path.join(FINAL_MKL_DIR, f"{job_base}.mkl"))
+        if os.path.exists(mkl_path):
+            shutil.copy2(mkl_path, os.path.join(FINAL_MKL_DIR, f"{job_base}.mkl"))
+        
         with lock: mark_completed(mol_id, method)
         print(f"{prefix} DONE.")
-        # 清理所有相关文件
-        for f in [work_inp, restart_gbw, current_out, mkl_path, gbw_path]:
-            if os.path.exists(f): os.remove(f)
-    else:
-        print(f"{prefix} INCOMPLETE. Files kept for resume.")
+        
+        # Cleanup ALL
+        for f in glob.glob(os.path.join(slot_dir, f"{job_base}*")):
+            try: os.remove(f)
+            except: pass
 
-def worker(slot_id, cpu_range, cores_per_slot, lock):
+    elif has_explicit_error:
+        print(f"{prefix} FAILED (Explicit Error). Cleaning up for fresh restart.")
+        fail_log_path = os.path.join(FAILED_LOG_DIR, f"{job_base}_failed.out")
+        try: shutil.copy2(current_out, fail_log_path)
+        except: pass
+
+        # Cleanup ALL (Force fresh start)
+        for f in glob.glob(os.path.join(slot_dir, f"{job_base}*")):
+            try: os.remove(f)
+            except: pass
+
+    else:
+        print(f"{prefix} INTERRUPTED. Saving GBW for resume.")
+        if os.path.exists(current_gbw):
+            shutil.move(current_gbw, restart_gbw)
+        
+        # Delete everything else (including .inp) to ensure fresh copy next time
+        for f in glob.glob(os.path.join(slot_dir, f"{job_base}*")):
+            if os.path.basename(f) == restart_gbw_name: continue 
+            try: os.remove(f)
+            except: pass
+
+def worker(slot_id, cores_per_slot, task_queue, lock):
+    """
+    Worker process that grabs tasks from a shared Queue.
+    This ensures no slot sits idle if other molecules are waiting.
+    """
     slot_dir = get_slot_dir(slot_id)
-    # 持续循环到没有任务或时间到
-    # 这里简单处理：扫描一次文件夹。如果需要一直跑，外层 bash 会控制重启。
-    inps = sorted([f for f in os.listdir(slot_dir) if f.endswith('.inp')])
-    for inp in inps:
-        parsed = parse_inp_filename(inp)
-        if not parsed: continue
-        mol_id, method = parsed
-        if is_completed(mol_id, method): continue
-        run_task((mol_id, method, cpu_range, cores_per_slot, slot_id), slot_dir, lock)
+    
+    while True:
+        try:
+            # Non-blocking get? No, blocking is better here.
+            # Get a task: (mol_id, method)
+            task = task_queue.get(timeout=5) 
+        except queue.Empty:
+            # Queue is empty, worker is done
+            break
+            
+        mol_id, method = task
+        
+        # Double check DB before running
+        if is_completed(mol_id, method): 
+            task_queue.task_done()
+            continue
+            
+        # Run
+        try:
+            run_task((mol_id, method, cores_per_slot, slot_id), slot_dir, lock)
+        except Exception as e:
+            print(f"[Slot {slot_id}] Critical Error: {e}")
+        
+        task_queue.task_done()
 
 # ==============================================================================
 # Main
 # ==============================================================================
 def main():
-    ensure_dirs()
-    init_db()
+    init_dirs_and_db()
 
-    # Pre-scan (DB Sync)
-    synced = 0
+    # --- 1. Identify all tasks ---
+    print("[Setup] identifying tasks...")
+    all_tasks = []
+    
+    # Pre-check existing files to populate DB
+    synced_count = 0
+    
     for mol_id in range(START_ID, END_ID + 1):
         for method in METHODS:
+            # Check DB
+            if is_completed(mol_id, method): continue
+            
+            # Check Disk
             job_base = f"dsgdb9nsd_{mol_id:06d}_{method}_{BASIS}"
-            if os.path.exists(os.path.join(FINAL_OUT_DIR, f"{job_base}.out")) and \
-               os.path.exists(os.path.join(FINAL_MKL_DIR, f"{job_base}.mkl")):
-                mark_completed(mol_id, method)
-                synced += 1
-    print(f"[DB] Synced {synced} completed jobs.")
+            final_out = os.path.join(FINAL_OUT_DIR, f"{job_base}.out")
+            
+            if os.path.exists(final_out):
+                has_error = check_file_for_errors(final_out)
+                is_valid = False
+                if not has_error:
+                    try:
+                        with open(final_out, 'r', errors='ignore') as f:
+                            if "ORCA TERMINATED NORMALLY" in f.read():
+                                is_valid = True
+                    except: pass
+                
+                if is_valid:
+                    mark_completed(mol_id, method)
+                    synced_count += 1
+                else:
+                    # If file exists but invalid, we add to queue to rerun
+                    all_tasks.append((mol_id, method))
+            else:
+                # Not in DB, not on disk -> Add to queue
+                all_tasks.append((mol_id, method))
 
-    copy_inputs()
+    print(f"[Pre-check] Synced {synced_count} valid jobs from disk.")
+    print(f"[Queue] Added {len(all_tasks)} tasks to queue.")
 
-    # CPU Setup
+    # --- 2. Configure Resources ---
     slurm_cpus = os.environ.get('SLURM_CPUS_PER_TASK')
     total_cores = int(slurm_cpus) if slurm_cpus else multiprocessing.cpu_count()
-    
-    # 这里的逻辑：如果 Intel 32核，Concurrency=2，则每个Slot 16核
-    # 如果 AMD 128核，Concurrency=8，则每个Slot 16核
     cores_per_slot = total_cores // CONCURRENCY
-    
-    cpu_ranges = []
-    for i in range(CONCURRENCY):
-        s = i * cores_per_slot
-        e = (i + 1) * cores_per_slot - 1
-        cpu_ranges.append(f"{s}-{e}")
 
-    print(f"CONFIG: {total_cores} cores | {CONCURRENCY} slots | {cores_per_slot} cores/slot")
+    print(f"CONFIG: {total_cores} cores | {CONCURRENCY} slots | {cores_per_slot} cores/slot (Dynamic Queue)")
     
-    lock = multiprocessing.Lock()
+    # --- 3. Start Workers ---
+    # Use Manager.Queue for process-safe queue
+    manager = multiprocessing.Manager()
+    task_queue = manager.Queue()
+    lock = manager.Lock()
+    
+    for t in all_tasks:
+        task_queue.put(t)
+        
     procs = []
     for i in range(CONCURRENCY):
-        p = multiprocessing.Process(target=worker, args=(i, cpu_ranges[i], cores_per_slot, lock))
+        p = multiprocessing.Process(target=worker, args=(i, cores_per_slot, task_queue, lock))
         p.start()
         procs.append(p)
     

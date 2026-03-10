@@ -1,6 +1,7 @@
 import os
 import matplotlib.pyplot as plt
 from collections import defaultdict
+from datetime import datetime
 
 # ======================
 # 配置学术风格（参考提供的折线图风格：无网格、黑色边框、简洁）
@@ -53,7 +54,7 @@ for dirname in os.listdir(base_dir):
     ]
 
     counts[method_basis] = len(completed_files)
-
+    print(counts[method_basis])
 # ======================
 # 排序（降序）
 # ======================
@@ -108,6 +109,7 @@ plt.tight_layout()
 
 # 保存（高分辨率，适合论文）
 # plt.savefig("orca_completed_calculations.pdf", bbox_inches='tight', dpi=600)
-plt.savefig("orca_completed_calculations.png", bbox_inches='tight', dpi=1200)
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+plt.savefig(f"./pngs/orca_completed_calculations_{timestamp}.png", bbox_inches='tight', dpi=1200)
 
 plt.show()

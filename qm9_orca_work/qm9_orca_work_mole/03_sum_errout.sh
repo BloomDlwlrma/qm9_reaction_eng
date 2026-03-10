@@ -1,4 +1,14 @@
-#!/usr/bin/env bash
+#!/bin/bash
+#SBATCH --job-name=QM9_Debug
+#SBATCH --partition=amd
+#SBATCH --qos=debug
+#SBATCH --time=00:30:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=64
+#SBATCH --mem=32G
+#SBATCH --output=./logs/debug_%a_%j.out
+#SBATCH --error=./logs/debug_%a_%j.err
 # =============================================================================
 # Adjusted for QM9: Scan molecule dirs in SOURCE_ROOT for .out errors
 # =============================================================================
@@ -8,26 +18,16 @@ ERROR_PATTERNS=(
     "aborting the run"
     "abnormal termination"
     "aborted"
-    "the job aborted"
     "killed"
     "segfault"
     "segmentation fault"
-    "mpirun detected"
     "out of memory"
     "execution failed"
     "error termination"
-    "the mdci module"
-    "mdci_state.cpp"
-    "orca_mdci_mpi"
     "not enough slots"
-    "there are not enough slots available"
     "illegal state"
-    "signal: aborted"
-    "received signal"
     "\*\*\* Process.*received signal"
-    "primary job .* non-zero exit code"
     "non-zero exit code"
-    "primary job"
     "End of error message"
     "Invalid argument"
 )
@@ -48,17 +48,19 @@ find "${SOURCE_ROOT}" -type f -name "*.out" | while read -r out_file; do
     # echo "Processing job: ${job_base}"
 
     if [[ -f "${err_file}" ]]; then
-        echo "  Skipped (already processed): ${job_base}"
+        # echo "  Skipped (already processed): ${job_base}"
         continue
     fi
 
     has_error=false
     matched_patterns=()
+    tail_out=$(tail -n 25 "${out_file}")
+
     for pattern in "${ERROR_PATTERNS[@]}"; do
-        if grep -qiE "${pattern}" "${out_file}"; then
+        if echo "${tail_out}" | grep -qiE "${pattern}"; then # Case-insensitive search：if match found, mark as error and record pattern
             has_error=true
             matched_patterns+=("${pattern}")
-            echo "  ERROR: ${job_base} (matched: ${pattern})"
+            # echo "  ERROR: ${job_base} (matched: ${pattern})"
         fi
     done
 
@@ -77,9 +79,9 @@ find "${SOURCE_ROOT}" -type f -name "*.out" | while read -r out_file; do
             echo "  relative err mkl file is not reserve: ${job_base}.mkl"
         fi
 
-        rm -vf "${ORCA_FILES_DIR}/${job_base}".!(inp) 2>/dev/null
-        # mv -v "${out_file}" "${ORCA_ERRS_DIR}/${mol_id}_${job_base}.out"
-        echo "  → Cleanup done for ${job_base}"
+        # rm -vf "${ORCA_FILES_DIR}/${job_base}".!(inp) 2>/dev/null
+        rm -vf "${out_file}"
+        # echo "  → Cleanup done for ${job_base}"
     fi
 done
 

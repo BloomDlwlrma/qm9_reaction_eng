@@ -1,35 +1,32 @@
 #!/bin/bash
-#SBATCH --job-name=QM9_AMD_Even
+#SBATCH --job-name=QM9_AMD_631gs_ccsdt
 #SBATCH --partition=amd
 #SBATCH --qos=normal
 #SBATCH --time=7-00:00:00
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=128
-#SBATCH --mem=384G
+#SBATCH --nodes=1                                 # Number of compute node
+#SBATCH --ntasks=192                               # CPUs used for ORCA
+#SBATCH --ntasks-per-node=192                      # CPUs used per node
+#SBATCH --mem=576G
 #SBATCH --output=./logs/amd_even_%a_%j.out
 #SBATCH --error=./logs/amd_even_%a_%j.err
-#SBATCH --array=0-13
+#SBATCH --array=0-7
 
 # ==============================================================================
 # Logic: AMD takes EVEN chunks (0, 2, 4...)
 # Range 16000 - 128000
 # ==============================================================================
-BASE_OFFSET=16000
-CHUNKSIZE=4000
-CONCURRENCY=8  # 128 cores / 16 per task = 8 tasks
+BASE_OFFSET=1
+CHUNKSIZE=2000
+CONCURRENCY=12  # 64 cores / 16 per task = 8 tasks
 
 # Calculate Start/End based on Even steps
-# Task 0 -> Chunk 0 (16k)
-# Task 1 -> Chunk 2 (24k)
-# Task 2 -> Chunk 4 (32k)
-EFFECTIVE_CHUNK_ID=$(( SLURM_ARRAY_TASK_ID * 2 ))
+# EFFECTIVE_CHUNK_ID=$(( SLURM_ARRAY_TASK_ID * 2 ))
 
-START_MOL=$(( BASE_OFFSET + EFFECTIVE_CHUNK_ID * CHUNKSIZE ))
+START_MOL=$(( BASE_OFFSET + SLURM_ARRAY_TASK_ID * CHUNKSIZE )) # EFFECTIVE_CHUNK_ID
 END_MOL=$(( START_MOL + CHUNKSIZE - 1 ))
 
 # Persistent Directory Name
-WORK_SUBDIR="/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/run_chunk_${START_MOL}_${END_MOL}"
+WORK_SUBDIR="/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/run_chunk/run_chunk_${START_MOL}_${END_MOL}"
 mkdir -p "$WORK_SUBDIR" "./logs"
 
 # Environment
@@ -41,7 +38,7 @@ export LD_LIBRARY_PATH="${ORCA_HOME}/lib:${LD_LIBRARY_PATH}"
 export ORCA_SKIP_CPU_BIND=1 
 
 echo "=== AMD (Even) Task ${SLURM_ARRAY_TASK_ID} ==="
-echo "Chunk ID: ${EFFECTIVE_CHUNK_ID}"
+echo "Chunk ID: ${SLURM_ARRAY_TASK_ID}" # SLURM_ARRAY_TASK_ID
 echo "Range: ${START_MOL} to ${END_MOL}"
 
 # Execute Python Manager: 631gss ccsdt

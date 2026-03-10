@@ -3,21 +3,21 @@
 #SBATCH --partition=condo_amd
 #SBATCH --qos=normal
 #SBATCH --time=24:00:00
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=128
-#SBATCH --mem=384G
+#SBATCH --nodes=1                                 # Number of compute node
+#SBATCH --ntasks=192                               # CPUs used for ORCA
+#SBATCH --ntasks-per-node=192                      # CPUs used per node
+#SBATCH --mem=576G
 #SBATCH --output=./logs/condo_odd_%a_%j.out
 #SBATCH --error=./logs/condo_odd_%a_%j.err
-#SBATCH --array=0-13
+#SBATCH --array=0-15
 
 # ==============================================================================
 # Logic: Condo takes ODD chunks (1, 3, 5...)
 # Range 16000 - 128000
 # ==============================================================================
-BASE_OFFSET=16000
-CHUNKSIZE=4000
-CONCURRENCY=8
+BASE_OFFSET=3201
+CHUNKSIZE=400
+CONCURRENCY=12
  
 # Calculate Start/End based on Odd steps
 # Task 0 -> Chunk 1 (20k)
@@ -29,7 +29,7 @@ START_MOL=$(( BASE_OFFSET + EFFECTIVE_CHUNK_ID * CHUNKSIZE ))
 END_MOL=$(( START_MOL + CHUNKSIZE - 1 ))
 echo "Array task ${SLURM_ARRAY_TASK_ID}: molecules ${START_MOL} to ${END_MOL}"
 
-WORK_SUBDIR="/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/run_chunk_${START_MOL}_${END_MOL}"
+WORK_SUBDIR="/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/run_chunk/run_chunk_${START_MOL}_${END_MOL}"
 mkdir -p "$WORK_SUBDIR" "./logs"
 
 # Environment

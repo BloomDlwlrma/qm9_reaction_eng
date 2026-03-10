@@ -3,10 +3,10 @@
 #SBATCH --partition=hugemem
 #SBATCH --qos=hugemem
 #SBATCH --time=7-00:00:00
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=128
-#SBATCH --mem=400G
+#SBATCH --nodes=1                                 # Number of compute node
+#SBATCH --ntasks=128                               # CPUs used for ORCA
+#SBATCH --ntasks-per-node=128                      # CPUs used per node
+#SBATCH --mem=1000G
 #SBATCH --output=./logs/huge_%j.out
 #SBATCH --error=./logs/huge_%j.err
 
@@ -14,7 +14,7 @@
 # QM9 ORCA Batch (No explicit CPU binding)
 # hugemem 128 2T 16; intel 32 192G 4 ; amd 64 256G 8/ 128 512g/ 192 768G 24;
 # ============================================================================== 
-START_MOL=131000
+START_MOL=128000
 END_MOL=134000
 MAX_MOL=133885
 if [ $END_MOL -gt $MAX_MOL ]; then

@@ -1,28 +1,34 @@
 #!/bin/bash
-#SBATCH --job-name=QM9_Intel
-#SBATCH --partition=intel
+#SBATCH --job-name=QM9_Condo_Even
+#SBATCH --partition=condo_amd
 #SBATCH --qos=normal
-#SBATCH --time=7-00:00:00
+#SBATCH --time=24:00:00
 #SBATCH --nodes=1                                 # Number of compute node
-#SBATCH --ntasks=32                               # CPUs used for ORCA
-#SBATCH --ntasks-per-node=32                      # CPUs used per node
-#SBATCH --mem=96G
-#SBATCH --output=./logs/intel_%a_%j.out
-#SBATCH --error=./logs/intel_%a_%j.err
-#SBATCH --array=0-3
+#SBATCH --ntasks=192                               # CPUs used for ORCA
+#SBATCH --ntasks-per-node=192                      # CPUs used per node
+#SBATCH --mem=576G
+#SBATCH --output=./logs/condo_odd_%a_%j.out
+#SBATCH --error=./logs/condo_odd_%a_%j.err
+#SBATCH --array=0-15
 
 # ==============================================================================
-# Logic: Intel: 32 cores. Concurrency = 2 (16 cores/task)
+# Logic: Condo takes ODD chunks (1, 3, 5...)
+# Range 16000 - 128000
 # ==============================================================================
-CHUNKSIZE=800
-CONCURRENCY=2  # 32 cores / 16 per task = 2 tasks
+BASE_OFFSET=3601
+CHUNKSIZE=400
+CONCURRENCY=12
+ 
+# Calculate Start/End based on Odd steps
+# Task 0 -> Chunk 1 (20k)
+# Task 1 -> Chunk 3 (28k)
+# Task 2 -> Chunk 5 (36k)
+EFFECTIVE_CHUNK_ID=$(( SLURM_ARRAY_TASK_ID * 2 ))
 
-# Calculate Start/End based on Even steps
-EFFECTIVE_CHUNK_ID=$SLURM_ARRAY_TASK_ID
-START_MOL=$(( 0 + EFFECTIVE_CHUNK_ID * CHUNKSIZE ))
+START_MOL=$(( BASE_OFFSET + EFFECTIVE_CHUNK_ID * CHUNKSIZE ))
 END_MOL=$(( START_MOL + CHUNKSIZE - 1 ))
+echo "Array task ${SLURM_ARRAY_TASK_ID}: molecules ${START_MOL} to ${END_MOL}"
 
-# Persistent Directory Name
 WORK_SUBDIR="/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole/run_chunk/run_chunk_${START_MOL}_${END_MOL}"
 mkdir -p "$WORK_SUBDIR" "./logs"
 
@@ -32,9 +38,9 @@ module load openmpi/gcc/4.1.6-gcc12.3
 export ORCA_HOME=/lustre1/g/chem_yangjun/orca6.1.0/orca-6.1.0-f.0_linux_x86-64
 export PATH="${ORCA_HOME}/bin:${PATH}"
 export LD_LIBRARY_PATH="${ORCA_HOME}/lib:${LD_LIBRARY_PATH}"
-export ORCA_SKIP_CPU_BIND=1 
+export ORCA_SKIP_CPU_BIND=1
 
-echo "=== Intel Task ${SLURM_ARRAY_TASK_ID} ==="
+echo "=== Condo (Odd) Task ${SLURM_ARRAY_TASK_ID} ==="
 echo "Chunk ID: ${EFFECTIVE_CHUNK_ID}"
 echo "Range: ${START_MOL} to ${END_MOL}"
 

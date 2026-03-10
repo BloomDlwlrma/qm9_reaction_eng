@@ -1,4 +1,12 @@
 #!/bin/bash
+#SBATCH --job-name=16kAuto
+#SBATCH --partition=intel
+#SBATCH --qos=long
+#SBATCH --time=14-00:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=1G
+#SBATCH --output=./autolog/monitor_%j.log
 
 # ==============================================================================
 # Automated submission monitoring script
@@ -7,13 +15,16 @@
 # ==============================================================================
 
 # Define log file
-LOG_FILE="auto_longsubmitter.log"
+LOG_FILE="./autolog/auto_longsubmitter.log"
 
 # Define tasks to monitor (format: "JobName:ScriptPath")
 # Note: JobName must match the #SBATCH --job-name in your .slurm script
 BASE_DIR="/scr/u/u3651388/qm9_reaction_eng/qm9_orca_work/qm9_orca_work_mole"
 TASKS=(
-    "QM9_Long:$BASE_DIR/04_final_longbatch.cmd"
+    "QM9_Even:$BASE_DIR/04_final_condoevenbatch.cmd"
+    "QM9_Odd:$BASE_DIR/04_final_condooddbatch.cmd"
+    "QM9_Intel:$BASE_DIR/04_final_intelbatch.cmd"
+    "QM9_AMD:$BASE_DIR/04_final_amdbatch.cmd"
     "QM9_Huge:$BASE_DIR/04_final_hugemembatch.cmd"
 )
 

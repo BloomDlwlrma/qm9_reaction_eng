@@ -1,0 +1,17 @@
+source_file,batch,percent_done,i,j,k,eijk,et_ijk,et_cum
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,,4,3,1,-2.481287582,-0.000598311,-0.000598311
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,10,4,3,2,-2.481287572,-0.000598311,-0.001196622
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,,4,3,3,-2.718999399,-0.000386402,-0.001583024
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,20,3,2,1,-2.243575763,-0.000686368,-0.002269392
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,30,4,1,1,-2.243575765,-0.000353212,-0.002622604
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,,4,2,1,-2.243575756,-0.000686368,-0.003308972
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,40,4,2,2,-2.243575746,-0.000353212,-0.003662184
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,50,3,2,2,-2.243575754,-0.000353212,-0.004015396
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,,3,1,1,-2.243575772,-0.000353212,-0.004368608
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,60,2,1,1,-2.005863946,-0.000392967,-0.004761575
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,,3,3,2,-2.48128758,-0.000438919,-0.005200494
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,70,4,4,2,-2.481287565,-0.000438919,-0.005639413
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,80,3,3,1,-2.481287589,-0.000438919,-0.006078332
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,,4,4,3,-2.718999391,-0.000386402,-0.006464733
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,90,4,4,1,-2.481287574,-0.000438919,-0.006903652
+qm9_orca_work/qm9_orca_work_molecu/water.out,1,,2,2,1,-2.005863937,-0.000392967,-0.007296619

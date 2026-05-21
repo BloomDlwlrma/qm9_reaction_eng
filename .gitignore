@@ -1,0 +1,84 @@
+# CSV output files
+src/csv/
+*.csv
+!requirements.txt
+*.txt
+*.md
+# PNG files
+src/png/
+*.png
+
+# Test directories
+src/test/
+tdnn/test/
+
+# ORCA work directories
+qm9_orca_work/qm9_orca_work_elem/c/
+qm9_orca_work/qm9_orca_work_elem/f/
+qm9_orca_work/qm9_orca_work_elem/h/
+qm9_orca_work/qm9_orca_work_elem/n/
+qm9_orca_work/qm9_orca_work_elem/o/
+qm9_orca_work/qm9_orca_work_elem/orca_outputs/
+qm9_orca_work/qm9_orca_work_elem/orca_errs/
+
+qm9_orca_work/qm9_orca_work_mole/orca_files
+qm9_orca_work/qm9_orca_work_mole/orca_errs
+qm9_orca_work/qm9_orca_work_mole/orca_rundir_info
+qm9_orca_work/qm9_orca_work_mole/orca_output/logs
+qm9_orca_work/qm9_orca_work_mole/orca_output/failed_logs
+qm9_orca_work/qm9_orca_work_mole/orca_output/mywater
+qm9_orca_work/qm9_orca_work_mole/orca_output/orca_*
+qm9_orca_work/qm9_orca_work_mole/orca_output/
+qm9_orca_work/qm9_orca_work_mole/checkpoints
+qm9_orca_work/qm9_orca_work_mole/logs
+qm9_orca_work/qm9_orca_work_mole/orca_files_debug
+qm9_orca_work/qm9_orca_work_mole/orca_errs_debug
+qm9_orca_work/qm9_orca_work_mole/orca_rundir_info_debug
+qm9_orca_work/qm9_orca_work_mole/orca_output_debug
+qm9_orca_work/qm9_orca_work_mole/checkpoints_debug
+qm9_orca_work/qm9_orca_work_mole/run_chunk*
+
+# Source files
+qm9_xyz_files/
+*.xyz
+dsgdb9nsd.xyz.tar.bz2
+*.cmd
+qm9_orca_work/qm9_orca_work_mole/_template_
+
+# HDF5 files
+src/hdf5/
+*.h5
+*.hdf5
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+*.out
+
+# Temporary files
+*.tmp
+*.temp
+*.err.*
+*.out.*
